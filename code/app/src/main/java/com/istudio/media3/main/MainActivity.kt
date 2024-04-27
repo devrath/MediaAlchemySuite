@@ -11,9 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.istudio.media3.main.selection.DemoSelectionScreen
+import com.istudio.media3.main.selection.SelectionScreenViewModel
 import com.istudio.media3.ui.theme.Media3Theme
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
+
+    private val vm: SelectionScreenViewModel by viewModel()
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

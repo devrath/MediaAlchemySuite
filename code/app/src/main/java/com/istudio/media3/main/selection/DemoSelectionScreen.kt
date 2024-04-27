@@ -17,9 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun DemoSelectionScreen() {
 
-    // Retrieve the CounterViewModel instance using viewModel()
-    val counterViewModel: SelectionScreenViewModel = viewModel()
-
+    val vm : SelectionScreenViewModel = viewModel()
 
     // Handle back button presses
     BackHandler {
