@@ -9,6 +9,7 @@ lifecycleRuntimeKtx = "2.7.0"
 activityCompose = "1.9.0"
 composeBom = "2023.08.00"
 koin-bom = "3.5.6"
+navigationCompose = "2.7.7"
 
 
 [libraries]
@@ -33,6 +34,7 @@ koin-android = { module = "io.insert-koin:koin-android" }
 koin-androidx-viewmodel = { module = "org.koin:koin-androidx-viewmodel" }
 koin-androidx-navigation = { module = "io.insert-koin:koin-androidx-navigation" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
