@@ -10,8 +10,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.istudio.media3.demos.audio.AudioDemoScreen
 import com.istudio.media3.main.selection.DemoSelectionScreen
 import com.istudio.media3.main.selection.SelectionScreenViewModel
+import com.istudio.media3.ui.LocalNavigationProvider
+import com.istudio.media3.ui.NavigationRoutes
 import com.istudio.media3.ui.theme.Media3Theme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -23,12 +28,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             Media3Theme {
-                // A surface container using the 'background' color from the theme
+                val navController = LocalNavigationProvider.current
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    DemoSelectionScreen()
+                    NavHost(
+                        navController = navController,
+                        startDestination = NavigationRoutes.screenSelection
+                    ) {
+                        composable(NavigationRoutes.screenSelection) { DemoSelectionScreen() }
+                        composable(NavigationRoutes.screenAudioDemo) { AudioDemoScreen() }
+                    }
                 }
             }
         }
