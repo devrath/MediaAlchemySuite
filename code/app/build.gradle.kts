@@ -74,5 +74,10 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
     implementation(libs.koin.androidx.navigation)
-    //implementation(libs.koin.androidx.viewmodel)
+    // Media-3
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.exoplayer.hls)
+    implementation(libs.media3.common)
+    implementation(libs.media3.session)
 }
