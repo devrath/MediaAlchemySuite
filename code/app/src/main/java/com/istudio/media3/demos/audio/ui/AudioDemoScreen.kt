@@ -13,23 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
+import org.koin.androidx.compose.koinViewModel
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun AudioDemoScreen () {
 
-    val viewModel: AudioDemoVm = viewModel()
-
-    if (viewModel.player == null) {
-        // Handle the case where the player is null
-        // This could indicate an issue with dependency injection or ViewModel initialization
-        Text(text = "Error: Player not initialized")
-    } else {
-        // Continue rendering your UI using the initialized ViewModel
-        // For example:
-        // AudioPlayer(player = viewModel.player)
-    }
-
+    val viewModel = koinViewModel<AudioDemoVm>()
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentTrackState by viewModel.currentPlayingIndex.collectAsStateWithLifecycle()
