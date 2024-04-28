@@ -20,6 +20,16 @@ fun AudioDemoScreen () {
 
     val viewModel: AudioDemoVm = viewModel()
 
+    if (viewModel.player == null) {
+        // Handle the case where the player is null
+        // This could indicate an issue with dependency injection or ViewModel initialization
+        Text(text = "Error: Player not initialized")
+    } else {
+        // Continue rendering your UI using the initialized ViewModel
+        // For example:
+        // AudioPlayer(player = viewModel.player)
+    }
+
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentTrackState by viewModel.currentPlayingIndex.collectAsStateWithLifecycle()
