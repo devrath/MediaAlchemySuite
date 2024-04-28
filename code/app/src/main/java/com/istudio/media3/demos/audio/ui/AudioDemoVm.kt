@@ -1,4 +1,4 @@
-package com.istudio.media3.demos.audio
+package com.istudio.media3.demos.audio.ui
 
 import androidx.lifecycle.ViewModel
 

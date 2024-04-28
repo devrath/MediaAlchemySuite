@@ -67,6 +67,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    // Glide
+    implementation(libs.androidx.glide)
     // Koin
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
