@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.istudio.media3.demos.audio.permission.RequestNotificationPermissions
 import com.istudio.media3.demos.audio.ui.AudioDemoScreen
 import com.istudio.media3.main.selection.DemoSelectionScreen
 import com.istudio.media3.main.selection.SelectionScreenViewModel
@@ -33,6 +34,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    RequestNotificationPermissions()
                     NavHost(
                         navController = navController,
                         startDestination = NavigationRoutes.screenSelection

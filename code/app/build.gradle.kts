@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -69,6 +70,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     // Glide
     implementation(libs.androidx.glide)
+    // Coil
+    implementation(libs.androidx.coil)
     // Koin
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
