@@ -70,9 +70,16 @@ class AudioDemoVm(
 
     private var isStarted = false
 
+    /** ********************************** PLAYER SETUP **************************************** **/
 
     /**
-     * Prepare the player state
+     * ACTION: Prepare the player state
+     * ******
+     * Things that are set up includes:
+     * *
+     * <1> The audio audio attributes of the player
+     * *
+     * <2> The listener for the player
      */
     fun preparePlayer(context:Context) {
         // Prepare the attributes
@@ -90,6 +97,11 @@ class AudioDemoVm(
         setupPlaylist(context)
     }
 
+    /**
+     * ACTION: Set the playlist and the notification for playing item
+     * ******
+     * 
+     */
     @OptIn(UnstableApi::class)
     private fun setupPlaylist(context: Context) {
 
@@ -137,7 +149,25 @@ class AudioDemoVm(
             prepare()
         }
     }
+    /** ********************************** PLAYER SETUP **************************************** **/
 
+
+
+    /** ********************************** ACTIONS ****************************************** **/
+    /**
+     * ACTION: Update the player current position
+     * ********
+     * Update the player(current position) to the position we have sought into
+     */
+    fun updatePlayerPosition(position: Long) {
+        player.seekTo(position)
+    }
+
+    /**
+     * ACTION: Initiate Play,Pause, Next song, Previous song
+     * ********
+     * Initiate appropriate player actions when certain actions are clicked
+     */
     fun updatePlaylist(action: ControlButtons) {
         when (action) {
             ControlButtons.Play -> if (player.isPlaying) player.pause() else player.play()
@@ -145,10 +175,7 @@ class AudioDemoVm(
             ControlButtons.Rewind -> player.seekToPreviousMediaItem()
         }
     }
-
-    fun updatePlayerPosition(position: Long) {
-        player.seekTo(position)
-    }
+    /** ********************************** ACTIONS ****************************************** **/
 
     private fun onStart(context: Context) {
         if (isStarted) return
@@ -224,7 +251,11 @@ class AudioDemoVm(
     }
 
     /**
-     * Listen to events from ExoPlayer.
+     * ACTION: Listen to events from ExoPlayer.
+     * ******
+     * Action States: STATE_IDLE, STATE_BUFFERING, STATE_READY, STATE_ENDED
+     * When onPlaybackStateChanged & onMediaItemTransition --> SyncPlayerFlows
+     * When onIsPlayingChanged --> Set the value to true
      */
     private val playerListener = object : Player.Listener {
 
@@ -260,6 +291,9 @@ class AudioDemoVm(
      * *************************** Listeners ***************************
      */
 
+    /**
+     * *************************** Other functions *********************
+     */
     private fun syncPlayerFlows() {
         _currentPlayingIndex.value = player.currentMediaItemIndex
         _totalDurationInMS.value = player.duration.coerceAtLeast(0L)
@@ -286,6 +320,9 @@ class AudioDemoVm(
                 )
             }
     }
+    /**
+     * *************************** Other functions *********************
+     */
 }
 
 
