@@ -28,28 +28,6 @@ import kotlinx.coroutines.withContext
  * @param player The ExoPlayer instance.
  * @param notificationListener The listener for notification events.
  */
-
-
-/**
- * The size of the large icon for the notification in pixels.
- */
-const val NOTIFICATION_LARGE_ICON_SIZE = 144 // px
-/**
- * The channel ID for the notification.
- */
-const val NOW_PLAYING_CHANNEL_ID = "media.NOW_PLAYING"
-/**
- * The notification ID.
- */
-const val NOW_PLAYING_NOTIFICATION_ID = 0xb339 // Arbitrary number used to identify our notification
-
-/**
- * Default options for Glide.
- */
-private val glideOptions = RequestOptions()
-    .fallback(R.mipmap.ic_launcher)
-    .diskCacheStrategy(DiskCacheStrategy.DATA)
-
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class MediaNotificationManager(
     private val context: Context,
@@ -57,9 +35,36 @@ class MediaNotificationManager(
     private val player: Player,
     notificationListener: PlayerNotificationManager.NotificationListener
 ) {
+
+    companion object {
+        /**
+         * The size of the large icon for the notification in pixels.
+         */
+        const val NOTIFICATION_LARGE_ICON_SIZE = 144 // px
+
+        /**
+         * The notification ID.
+         */
+        const val NOW_PLAYING_NOTIFICATION_ID = 0xb339 // Arbitrary number used to identify our notification
+
+        /**
+         * The channel ID for the notification.
+         */
+        const val NOW_PLAYING_CHANNEL_ID = "media.NOW_PLAYING"
+    }
+
+
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
     private val notificationManager: PlayerNotificationManager
+
+
+    /**
+     * Default options for Glide.
+     */
+    private val glideOptions = RequestOptions()
+        .fallback(R.mipmap.ic_launcher)
+        .diskCacheStrategy(DiskCacheStrategy.DATA)
 
     init {
 
@@ -67,8 +72,8 @@ class MediaNotificationManager(
 
         notificationManager = PlayerNotificationManager.Builder(
             context,
-            NOW_PLAYING_NOTIFICATION_ID,
-            NOW_PLAYING_CHANNEL_ID
+            Companion.NOW_PLAYING_NOTIFICATION_ID,
+            Companion.NOW_PLAYING_CHANNEL_ID
         )
             .setChannelNameResourceId(R.string.media_notification_channel)
             .setChannelDescriptionResourceId(R.string.media_notification_channel_description)
@@ -146,7 +151,10 @@ class MediaNotificationManager(
                 Glide.with(context).applyDefaultRequestOptions(glideOptions)
                     .asBitmap()
                     .load(uri)
-                    .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
+                    .submit(
+                        Companion.NOTIFICATION_LARGE_ICON_SIZE,
+                        Companion.NOTIFICATION_LARGE_ICON_SIZE
+                    )
                     .get()
             }
         }

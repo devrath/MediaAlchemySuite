@@ -156,18 +156,10 @@ class AudioDemoVm(
         isStarted = true
 
         // Build a PendingIntent that can be used to launch the UI.
-        val sessionPendingIntent =
-            context.packageManager?.getLaunchIntentForPackage(context.packageName)
-                ?.let { sessionIntent ->
-                    PendingIntent.getActivity(
-                        context, SESSION_INTENT_REQUEST_CODE,
-                        sessionIntent, PendingIntent.FLAG_IMMUTABLE
-                    )
-                }
+        val sessionPendingIntent = preparePendingIntent(context)
 
         // Create a new MediaSession.
-        mediaSession = MediaSession.Builder(context, player)
-            .setSessionActivity(sessionPendingIntent!!).build()
+        mediaSession = prepareMediaSession(context, sessionPendingIntent)
 
         /**
          * The notification manager will use our player and media session to decide when to post
@@ -200,32 +192,34 @@ class AudioDemoVm(
         if (!isStarted) return
 
         isStarted = false
-        mediaSession.run {
-            release()
-        }
-
+        // Release the media session
+        mediaSession.run { release() }
         // Hide notification
         notificationManager.hideNotification()
-
         // Free ExoPlayer resources.
         player.removeListener(playerListener)
     }
 
+    /**
+     * *************************** Listeners ***************************
+     */
     /**
      * Listen for notification events.
      */
     private inner class PlayerNotificationListener :
         PlayerNotificationManager.NotificationListener {
         override fun onNotificationPosted(
-            notificationId: Int,
-            notification: Notification,
-            ongoing: Boolean
+            notificationId: Int, notification: Notification, ongoing: Boolean
         ) {
-
+            Log.d(TAG, "notificationId: $notificationId"
+                .plus("\n")
+                .plus("ongoing: $ongoing"))
         }
 
         override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
-
+            Log.d(TAG, "notificationId: $notificationId"
+                .plus("\n")
+                .plus("dismissedByUser: $dismissedByUser"))
         }
     }
 
@@ -235,7 +229,7 @@ class AudioDemoVm(
     private val playerListener = object : Player.Listener {
 
         override fun onPlaybackStateChanged(playbackState: Int) {
-            Log.d(TAG, "onPlaybackStateChanged: ${playbackState}")
+            Log.d(TAG, "onPlaybackStateChanged: $playbackState")
             super.onPlaybackStateChanged(playbackState)
             syncPlayerFlows()
             when (playbackState) {
@@ -252,7 +246,7 @@ class AudioDemoVm(
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            Log.d(TAG, "onIsPlayingChanged: ${isPlaying}")
+            Log.d(TAG, "onIsPlayingChanged: $isPlaying")
             super.onIsPlayingChanged(isPlaying)
             _isPlaying.value = isPlaying
         }
@@ -262,10 +256,35 @@ class AudioDemoVm(
             Log.e(TAG, "Error: ${error.message}")
         }
     }
+    /**
+     * *************************** Listeners ***************************
+     */
 
     private fun syncPlayerFlows() {
         _currentPlayingIndex.value = player.currentMediaItemIndex
         _totalDurationInMS.value = player.duration.coerceAtLeast(0L)
+    }
+
+    /**
+     * Prepare the media session
+     */
+    private fun prepareMediaSession(
+        context: Context,
+        sessionPendingIntent: PendingIntent?
+    ) = MediaSession.Builder(context, player)
+        .setSessionActivity(sessionPendingIntent!!).build()
+
+    /**
+     * Prepare the pending intent
+     */
+    private fun preparePendingIntent(context: Context): PendingIntent? {
+        return context.packageManager?.getLaunchIntentForPackage(context.packageName)
+            ?.let { sessionIntent ->
+                PendingIntent.getActivity(
+                    context, SESSION_INTENT_REQUEST_CODE,
+                    sessionIntent, PendingIntent.FLAG_IMMUTABLE
+                )
+            }
     }
 }
 
