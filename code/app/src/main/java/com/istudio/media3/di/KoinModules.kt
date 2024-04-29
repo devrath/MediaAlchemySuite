@@ -1,11 +1,9 @@
 package com.istudio.media3.di
 
-import android.app.Application
 import android.content.Context
 import androidx.media3.exoplayer.ExoPlayer
 import com.istudio.media3.data.Tracks
 import com.istudio.media3.data.TracksImpl
-import com.istudio.media3.demos.audio.model.TrackItem
 import com.istudio.media3.demos.audio.ui.AudioDemoVm
 import com.istudio.media3.main.MainViewModel
 import com.istudio.media3.main.selection.SelectionScreenViewModel

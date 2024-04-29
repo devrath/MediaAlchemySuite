@@ -25,9 +25,6 @@ import com.istudio.media3.data.Tracks
 import com.istudio.media3.demos.audio.enum.ControlButtons
 import com.istudio.media3.demos.audio.model.TrackItem
 import com.istudio.media3.demos.audio.notificaton.MediaNotificationManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,10 +36,13 @@ import kotlinx.coroutines.flow.stateIn
 @OptIn(androidx.media3.common.util.UnstableApi::class)
 class AudioDemoVm(
     val player: ExoPlayer,
-    private val tracks: Tracks
+    tracks: Tracks
 ) : ViewModel() {
 
-    private val TAG = "Media3AppTag"
+    companion object {
+        private const val TAG = "Media3AppTag"
+        const val SESSION_INTENT_REQUEST_CODE = 0
+    }
 
     // Data from the data-source
     private val playlist = tracks.trackList()
@@ -63,24 +63,29 @@ class AudioDemoVm(
             initialValue = PlayerUIState.Loading
         )
 
+    // Control the notification displayed
     private lateinit var notificationManager: MediaNotificationManager
-
+    // Media session notifies the underlying player
     private lateinit var mediaSession: MediaSession
-    private val serviceJob = SupervisorJob()
-
 
     private var isStarted = false
 
-    fun preparePlayer(context: Context) {
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(C.USAGE_MEDIA)
-            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-            .build()
 
-        player.setAudioAttributes(audioAttributes, true)
-        player.repeatMode = Player.REPEAT_MODE_ALL
+    /**
+     * Prepare the player state
+     */
+    fun preparePlayer(context:Context) {
+        // Prepare the attributes
+        val audioAttributes = AudioAttributes.Builder().apply {
+            setUsage(C.USAGE_MEDIA) // Usage is for media
+            setContentType(C.AUDIO_CONTENT_TYPE_MUSIC) // Usage is for media
+        }.build()
 
-        player.addListener(playerListener)
+        player.apply {
+            setAudioAttributes(audioAttributes, true) // Set attributes
+            repeatMode = Player.REPEAT_MODE_ALL // Set the repeat mode
+            addListener(playerListener)
+        }
 
         setupPlaylist(context)
     }
@@ -89,21 +94,34 @@ class AudioDemoVm(
     private fun setupPlaylist(context: Context) {
 
         val videoItems: ArrayList<MediaSource> = arrayListOf()
-        playlist.forEach {
+        val dataSource : List<TrackItem> = playlist
 
-            val mediaMetaData = MediaMetadata.Builder()
-                .setArtworkUri(Uri.parse(it.teaserUrl))
-                .setTitle(it.title)
-                .setAlbumArtist(it.artistName)
-                .build()
 
-            val trackUri = Uri.parse(it.audioUrl)
-            val mediaItem = MediaItem.Builder()
-                .setUri(trackUri)
-                .setMediaId(it.id)
-                .setMediaMetadata(mediaMetaData)
-                .build()
+        dataSource.forEach {
+
+            // ***************** Prepare the items to be added *****************
             val dataSourceFactory = DefaultDataSource.Factory(context)
+
+            val mediaId = it.id
+            val displayImage = Uri.parse(it.teaserUrl)
+            val title = it.title
+            val artistName = it.artistName
+            val trackUri = Uri.parse(it.audioUrl)
+            // ***************** Prepare the items to be added *****************
+
+            // META-DATA
+            val mediaMetaData = MediaMetadata.Builder().apply {
+                setArtworkUri(displayImage)
+                setTitle(title)
+                setAlbumArtist(artistName)
+            }.build()
+
+            // MEDIA-ITEM
+            val mediaItem = MediaItem.Builder().apply {
+                setUri(trackUri)
+                setMediaId(mediaId)
+                setMediaMetadata(mediaMetaData)
+            }.build()
 
             val mediaSource =
                 ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
@@ -113,9 +131,11 @@ class AudioDemoVm(
 
         onStart(context)
 
-        player.playWhenReady = false
-        player.setMediaSources(videoItems)
-        player.prepare()
+        player.apply {
+            playWhenReady = false
+            setMediaSources(videoItems)
+            prepare()
+        }
     }
 
     fun updatePlaylist(action: ControlButtons) {
@@ -136,7 +156,7 @@ class AudioDemoVm(
         isStarted = true
 
         // Build a PendingIntent that can be used to launch the UI.
-        val sessionActivityPendingIntent =
+        val sessionPendingIntent =
             context.packageManager?.getLaunchIntentForPackage(context.packageName)
                 ?.let { sessionIntent ->
                     PendingIntent.getActivity(
@@ -147,7 +167,7 @@ class AudioDemoVm(
 
         // Create a new MediaSession.
         mediaSession = MediaSession.Builder(context, player)
-            .setSessionActivity(sessionActivityPendingIntent!!).build()
+            .setSessionActivity(sessionPendingIntent!!).build()
 
         /**
          * The notification manager will use our player and media session to decide when to post
@@ -247,27 +267,14 @@ class AudioDemoVm(
         _currentPlayingIndex.value = player.currentMediaItemIndex
         _totalDurationInMS.value = player.duration.coerceAtLeast(0L)
     }
-
-    companion object {
-        const val SESSION_INTENT_REQUEST_CODE = 0
-    }
 }
 
 
 
 /**
- * Sealed interface representing the different states of the player UI.
+ *  Player UI states
  */
 sealed interface PlayerUIState {
-    /**
-     * Represents the state when the player UI displays a list of tracks.
-     *
-     * @property items The list of track items to be displayed.
-     */
     data class Tracks(val items: List<TrackItem>) : PlayerUIState
-
-    /**
-     * Represents the state when the player UI is in a loading state.
-     */
     data object Loading : PlayerUIState
 }
