@@ -50,40 +50,49 @@ android {
 }
 
 dependencies {
-
+    // <------------------- Android Libraries --------------->
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
-    // Glide
+    // <------------------- Android Libraries --------------->
+
+    // <------------------ Other ThirdParty Libraries ------->
     implementation(libs.androidx.glide)
-    // Coil
     implementation(libs.androidx.coil)
-    // Koin
+    // <------------------ Other ThirdParty Libraries ------->
+
+    // <-----------------------  Koin ----------------------->
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
     implementation(libs.koin.androidx.navigation)
+    // <-----------------------  Koin ----------------------->
 
-
-    // Media-3
+    // <-----------------------  Media-3 -------------------->
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.ui)
-    implementation(libs.media3.exoplayer.hls)
-    implementation(libs.media3.common)
-    implementation(libs.media3.session)
+    // <-----------------------  Media-3 -------------------->
+
+    // <-----------------------  Testing -------------------->
+    testImplementation(libs.junit)
+
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    // <-----------------------  Testing -------------------->
+
+    // <-----------------------  Debug ---------------------->
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
+    // <-----------------------  Debug ---------------------->
 }
