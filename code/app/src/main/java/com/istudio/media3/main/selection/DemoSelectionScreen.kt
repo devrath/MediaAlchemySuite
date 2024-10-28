@@ -40,6 +40,14 @@ fun DemoSelectionScreen() {
                 nav.navigate(NavigationRoutes.screenAudioDemo)
             }) { Text(text = "Audio Demo") }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                nav.navigate(NavigationRoutes.screenPlayVideoFromLocal)
+            }) { Text(text = "Play video from mobile") }
+
     }
 
 }

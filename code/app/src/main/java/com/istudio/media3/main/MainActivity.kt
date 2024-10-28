@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.istudio.media3.demos.audio.permission.RequestNotificationPermissions
 import com.istudio.media3.demos.audio.ui.AudioDemoScreen
+import com.istudio.media3.demos.video.VideoDemoScreen
 import com.istudio.media3.main.selection.DemoSelectionScreen
 import com.istudio.media3.main.selection.SelectionScreenViewModel
 import com.istudio.media3.ui.LocalNavigationProvider
@@ -30,39 +31,35 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            Media3Theme {
-                val navController = LocalNavigationProvider.current
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    RequestNotificationPermissions()
-                    NavHost(
-                        navController = navController,
-                        startDestination = NavigationRoutes.screenSelection
-                    ) {
-                        composable(NavigationRoutes.screenSelection) { DemoSelectionScreen() }
-                        composable(NavigationRoutes.screenAudioDemo) { AudioDemoScreen() }
-                    }
-                }
-            }
+        setContent { Media3Theme { MainScreen() } }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+@Composable
+fun MainScreen(modifier: Modifier = Modifier) {
+    val navController = LocalNavigationProvider.current
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        RequestNotificationPermissions()
+        NavHost(
+            navController = navController,
+            startDestination = NavigationRoutes.screenSelection
+        ) {
+            composable(NavigationRoutes.screenSelection) { DemoSelectionScreen() }
+            composable(NavigationRoutes.screenAudioDemo) { AudioDemoScreen() }
+            composable(NavigationRoutes.screenPlayVideoFromLocal) { VideoDemoScreen() }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     Media3Theme {
-        Greeting("Android")
+        MainScreen()
     }
 }
