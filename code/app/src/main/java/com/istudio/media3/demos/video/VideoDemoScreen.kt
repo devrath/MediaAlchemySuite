@@ -2,9 +2,17 @@ package com.istudio.media3.demos.video
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Forward10
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -65,29 +73,28 @@ fun Media3AndroidView(player: ExoPlayer?) {
 
 @Composable
 fun PlayerControls(player: ExoPlayer?) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(24.dp),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Button(onClick = { player?.playWhenReady = true }) {
-            Text("Play")
+        IconButton(onClick = { player?.playWhenReady = true }) {
+            Icon(Icons.Default.PlayArrow, contentDescription = "Play")
         }
-        Button(onClick = { player?.playWhenReady = false }) {
-            Text("Pause")
+        IconButton(onClick = { player?.playWhenReady = false }) {
+            Icon(Icons.Default.Pause, contentDescription = "Pause")
         }
-
-        Button(onClick = {
-            player?.seekTo(player.currentPosition - 10_000) // Seek backward 10 seconds
+        IconButton(onClick = {
+            player?.seekTo(player.currentPosition - 10_000)
         }) {
-            Text("Seek -10s")
+            Icon(Icons.Default.Replay10, contentDescription = "Seek -10s")
         }
-        Button(onClick = {
-            player?.seekTo(player.currentPosition + 10_000) // Seek forward 10 seconds
+        IconButton(onClick = {
+            player?.seekTo(player.currentPosition + 10_000)
         }) {
-            Text("Seek +10s")
+            Icon(Icons.Default.Forward10, contentDescription = "Seek +10s")
         }
     }
 }
