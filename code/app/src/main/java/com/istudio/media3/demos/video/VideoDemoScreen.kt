@@ -50,7 +50,15 @@ fun VideoDemoScreen (viewModel: VideoDemoVm = koinViewModel()) {
 
     Column {
         Media3AndroidView(player)
-        PlayerControls(player)
+        PlayerControls(player, playClickAction = {
+            player?.let { it.playWhenReady = true }
+        }, pauseClickAction = {
+            player?.let { it.playWhenReady = false }
+        }, forwardAction = {
+            player?.let { it.seekTo(it.currentPosition + 10_000) }
+        }, rewindAction = {
+            player?.let { it.seekTo(it.currentPosition - 10_000) }
+        })
     }
 
 }
@@ -72,7 +80,13 @@ fun Media3AndroidView(player: ExoPlayer?) {
 }
 
 @Composable
-fun PlayerControls(player: ExoPlayer?) {
+fun PlayerControls(
+    player: ExoPlayer?,
+    playClickAction :() -> Unit,
+    pauseClickAction :() -> Unit,
+    forwardAction :() -> Unit,
+    rewindAction :() -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -80,20 +94,16 @@ fun PlayerControls(player: ExoPlayer?) {
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { player?.playWhenReady = true }) {
+        IconButton(onClick = { playClickAction() }) {
             Icon(Icons.Default.PlayArrow, contentDescription = "Play")
         }
-        IconButton(onClick = { player?.playWhenReady = false }) {
+        IconButton(onClick = { pauseClickAction() }) {
             Icon(Icons.Default.Pause, contentDescription = "Pause")
         }
-        IconButton(onClick = {
-            player?.seekTo(player.currentPosition - 10_000)
-        }) {
+        IconButton(onClick = { rewindAction() }) {
             Icon(Icons.Default.Replay10, contentDescription = "Seek -10s")
         }
-        IconButton(onClick = {
-            player?.seekTo(player.currentPosition + 10_000)
-        }) {
+        IconButton(onClick = { forwardAction() }) {
             Icon(Icons.Default.Forward10, contentDescription = "Seek +10s")
         }
     }
