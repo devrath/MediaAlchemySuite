@@ -2,7 +2,7 @@ package com.istudio.player.di
 
 import android.content.Context
 import androidx.media3.exoplayer.ExoPlayer
-import com.istudio.player.controller.VideoPlayerController
+import com.istudio.player.MediaControllerManager
 import com.istudio.player.controller.VideoPlayerControllerImpl
 import dagger.Module
 import dagger.Provides
@@ -25,10 +25,8 @@ object PlayerModule {
 
     @Provides
     @Singleton
-    fun provideVideoPlayerController(
+    fun provideMediaControllerManager(
         @ApplicationContext context: Context
-    ): VideoPlayerController {
-        return VideoPlayerControllerImpl(context)
-    }
+    ): MediaControllerManager = MediaControllerManager(context)
 
 }

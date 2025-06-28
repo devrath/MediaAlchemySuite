@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.media3.session.MediaController
-import com.istudio.player.controller.VideoPlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.istudio.player.service.PlayerMediaSessionService
 import javax.inject.Inject
@@ -14,10 +13,10 @@ import androidx.compose.runtime.State
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-    private val videoPlayerController: VideoPlayerController
+    private val sessionController: VideoPlayerSessionController,
+    private val playbackController: VideoPlayerPlaybackController
 ) : ViewModel() {
 
-    // We place the state here because controller takes time to display and reactively notified of state changes
     private val _controllerState = mutableStateOf<MediaController?>(null)
     val controllerState: State<MediaController?> = _controllerState
 
@@ -29,14 +28,14 @@ class MainActivityViewModel @Inject constructor(
     }
 
     suspend fun initializeController() {
-        val controller = videoPlayerController.initialize()
-        _controllerState.value = controller
+        _controllerState.value = sessionController.initialize()
     }
 
-    fun playVideo() = videoPlayerController.play()
+    fun playVideo() = playbackController.play()
 
     override fun onCleared() {
-        videoPlayerController.pause()
+        playbackController.pause()
+        sessionController.release()
         super.onCleared()
     }
 }
