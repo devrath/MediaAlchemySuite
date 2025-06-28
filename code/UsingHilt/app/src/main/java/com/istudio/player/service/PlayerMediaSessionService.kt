@@ -11,6 +11,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.istudio.player.MainActivity
 import com.istudio.player.R
+import com.istudio.player.notification.NotificationProvider
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -28,11 +29,16 @@ class PlayerMediaSessionService : MediaSessionService() {
     @Inject
     lateinit var exoPlayer: ExoPlayer
 
+    @Inject
+    lateinit var notificationProvider: NotificationProvider
+
     private lateinit var mediaSession: MediaSession
 
     @UnstableApi
     override fun onCreate() {
         super.onCreate()
+
+        notificationProvider.createPlaybackChannel()
 
         val initialNotification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
