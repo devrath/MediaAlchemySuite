@@ -1,5 +1,6 @@
 package com.istudio.player
 
+import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
 import android.view.ViewGroup
@@ -11,15 +12,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.SessionToken
 import androidx.media3.ui.PlayerView
+import com.istudio.player.service.PlayerMediaSessionService
 import com.istudio.player.ui.theme.PlayerTheme
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.media3.session.MediaController
+import kotlinx.coroutines.guava.await
+
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -43,41 +54,28 @@ fun MainScreen(
 ) {
 
     val context = LocalContext.current
-    val player = viewModel.getPlayer()
+
+    var controller by remember { mutableStateOf<MediaController?>(null) }
 
     LaunchedEffect(Unit) {
-        viewModel.startMediaService(context)
-        viewModel.playMedia() // start playback
+        val sessionToken = SessionToken(context, ComponentName(context, PlayerMediaSessionService::class.java))
+        controller = MediaController.Builder(context, sessionToken).buildAsync().await()
+        controller?.play()
     }
 
-    VideoPlayer(context, player, modifier)
-}
-
-@Composable
-private fun VideoPlayer(
-    context: Context,
-    player: ExoPlayer,
-    modifier: Modifier
-) {
-    AndroidView(
-        factory = {
-            PlayerView(context).apply {
-                this.player = player
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-                useController = true
-            }
-        },
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PlayerTheme {
-        MainScreen()
+    controller?.let { ctrl ->
+        AndroidView(
+            factory = {
+                PlayerView(context).apply {
+                    player = ctrl
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                    useController = true
+                }
+            },
+            modifier = modifier
+        )
     }
 }
