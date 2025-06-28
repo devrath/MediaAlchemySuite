@@ -75,4 +75,13 @@ class PlayerMediaSessionService : MediaSessionService() {
         exoPlayer.release()
         super.onDestroy()
     }
+
+    @UnstableApi
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        // Pause playback
+        exoPlayer.playWhenReady = false
+        exoPlayer.pause()
+
+    }
 }

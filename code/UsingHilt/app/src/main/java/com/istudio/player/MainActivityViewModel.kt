@@ -34,10 +34,4 @@ class MainActivityViewModel @Inject constructor(
     }
 
     fun playVideo() = playbackController.play()
-
-    override fun onCleared() {
-        playbackController.pause()
-        sessionController.release()
-        super.onCleared()
-    }
 }
