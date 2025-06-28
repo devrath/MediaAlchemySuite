@@ -62,6 +62,8 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
+    implementation(libs.hilt.compose.viewmodel)
+    implementation(libs.hilt.navigation.compose)
 
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
