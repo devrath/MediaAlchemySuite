@@ -46,6 +46,7 @@ fun MainScreen(
     val player = viewModel.getPlayer()
 
     LaunchedEffect(Unit) {
+        viewModel.startMediaService(context)
         viewModel.playMedia() // start playback
     }
 

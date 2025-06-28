@@ -1,6 +1,9 @@
 package com.istudio.player
 
+import android.content.Context
+import android.content.Intent
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.media3.exoplayer.ExoPlayer
@@ -9,6 +12,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.datasource.HttpDataSource
+import com.istudio.player.service.PlayerMediaSessionService
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,6 +25,11 @@ class MainActivityViewModel @Inject constructor(
     }
 
     fun getPlayer(): ExoPlayer = player
+
+    fun startMediaService(context: Context) {
+        val intent = Intent(context, PlayerMediaSessionService::class.java)
+        ContextCompat.startForegroundService(context, intent)
+    }
 
 
     fun playMedia() {
