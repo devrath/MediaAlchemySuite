@@ -10,6 +10,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import com.istudio.player.service.PlayerMediaSessionService
 import javax.inject.Inject
 import androidx.compose.runtime.State
+import com.istudio.player.controllers.VideoPlayerPlaybackController
+import com.istudio.player.controllers.VideoPlayerSessionController
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(

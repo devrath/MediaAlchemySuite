@@ -1,8 +1,8 @@
 package com.istudio.player.di
 
-import com.istudio.player.VideoPlayerPlaybackController
-import com.istudio.player.VideoPlayerSessionController
-import com.istudio.player.controller.VideoPlayerControllerImpl
+import com.istudio.player.controllers.VideoPlayerControllerImpl
+import com.istudio.player.controllers.VideoPlayerPlaybackController
+import com.istudio.player.controllers.VideoPlayerSessionController
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

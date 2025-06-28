@@ -1,4 +1,4 @@
-package com.istudio.player
+package com.istudio.player.controllers
 
 import android.content.ComponentName
 import android.content.Context
@@ -9,7 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.guava.await
 import javax.inject.Inject
 
-class MediaControllerManager @Inject constructor(
+class MediaBinderControllerImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : MediaBinderController {
 
