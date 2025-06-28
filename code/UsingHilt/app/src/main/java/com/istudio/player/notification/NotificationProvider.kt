@@ -3,13 +3,17 @@ package com.istudio.player.notification
 import android.app.Application
 import android.app.Notification
 import android.content.Context
+import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.util.NotificationUtil
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaNotification
+import androidx.media3.session.SessionCommand
 import com.istudio.player.R
+import com.istudio.player.callbacks.PlayerMediaSessionCallback
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -51,4 +55,26 @@ class NotificationProvider @Inject constructor(
             .setNotificationId(NOTIFICATION_ID)
             .build()
     }
+
+    @OptIn(UnstableApi::class)
+    fun provideCustomCommandLayout(): List<CommandButton> {
+        val rewindCommand = SessionCommand(PlayerMediaSessionCallback.CUSTOM_REWIND, Bundle())
+        val forwardCommand = SessionCommand(PlayerMediaSessionCallback.CUSTOM_FORWARD, Bundle())
+
+        return listOf(
+            CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+                .setIconResId(R.drawable.replay_10)
+                .setDisplayName("Rewind")
+                .setSessionCommand(rewindCommand)
+                .build(),
+
+            // Do the same for the forward button.
+            CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+                .setIconResId(R.drawable.forward_10)
+                .setDisplayName("Forward")
+                .setSessionCommand(forwardCommand)
+                .build()
+        )
+    }
+
 }
