@@ -56,8 +56,11 @@ fun MainScreen(
     val context = LocalContext.current
 
     var controller by remember { mutableStateOf<MediaController?>(null) }
+    val dynamicVideoUrl = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
 
     LaunchedEffect(Unit) {
+        viewModel.startMediaService(context, dynamicVideoUrl)
+
         val sessionToken = SessionToken(context, ComponentName(context, PlayerMediaSessionService::class.java))
         controller = MediaController.Builder(context, sessionToken).buildAsync().await()
         controller?.play()

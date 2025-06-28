@@ -2,18 +2,12 @@ package com.istudio.player.service
 
 import android.app.PendingIntent
 import android.content.Intent
-import android.os.Bundle
-import androidx.core.app.NotificationCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.CommandButton
-import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import androidx.media3.session.SessionCommand
 import com.istudio.player.MainActivity
-import com.istudio.player.R
 import com.istudio.player.callbacks.PlayerMediaSessionCallback
 import com.istudio.player.notification.NotificationProvider
 import dagger.hilt.android.AndroidEntryPoint
@@ -23,55 +17,58 @@ import javax.inject.Inject
 class PlayerMediaSessionService : MediaSessionService() {
 
     companion object {
-        const val VIDEO_URL = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
+        const val EXTRA_VIDEO_URL = "extra_video_url"
     }
 
     @Inject lateinit var exoPlayer: ExoPlayer
     @Inject lateinit var notificationProvider: NotificationProvider
 
     private lateinit var mediaSession: MediaSession
+    private var hasInitialized = false
 
     @UnstableApi
-    override fun onCreate() {
-        super.onCreate()
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (!hasInitialized) {
+            hasInitialized = true
+            initializeSession(intent)
+        }
+        // ✅ Call the superclass method
+        return super.onStartCommand(intent, flags, startId)
+    }
 
-        // Create channel and initial notification
+    @UnstableApi
+    private fun initializeSession(intent: Intent?) {
         notificationProvider.createPlaybackChannel()
-        // Start foreground notification
-        startForeground(NotificationProvider.NOTIFICATION_ID, notificationProvider.buildInitialNotification(this))
+        startForeground(
+            NotificationProvider.NOTIFICATION_ID,
+            notificationProvider.buildInitialNotification(this)
+        )
 
-        // Setup media item and start playback
+        val videoUrl = intent?.getStringExtra(EXTRA_VIDEO_URL)
+            ?: throw IllegalArgumentException("Video URL is required")
+
         exoPlayer.apply {
-            val mediaItem = MediaItem.fromUri(VIDEO_URL)
-            setMediaItem(mediaItem)
+            setMediaItem(MediaItem.fromUri(videoUrl))
             prepare()
             playWhenReady = true
         }
 
-        // Create a session with a session activity that it has to be tied to
-        val pendingIntent = getPendingIntent()
+        val sessionIntent = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE
+        )
 
         mediaSession = MediaSession.Builder(this, exoPlayer)
-            .setSessionActivity(pendingIntent)
+            .setSessionActivity(sessionIntent)
             .setCallback(PlayerMediaSessionCallback(exoPlayer))
             .build()
 
         mediaSession.setCustomLayout(notificationProvider.provideCustomCommandLayout())
-
-
-        // Attach media notification provider from NotificationProvider
         setMediaNotificationProvider(notificationProvider.createMediaNotificationProvider(this))
     }
 
-    private fun getPendingIntent(): PendingIntent = PendingIntent.getActivity(
-        this, 0,
-        Intent(this, MainActivity::class.java),
-        PendingIntent.FLAG_IMMUTABLE
-    )
-
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession {
-        return mediaSession
-    }
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = mediaSession
 
     override fun onDestroy() {
         mediaSession.release()

@@ -11,8 +11,10 @@ import javax.inject.Inject
 @HiltViewModel
 class MainActivityViewModel @Inject constructor() : ViewModel() {
 
-    fun startMediaService(context: Context) {
-        val intent = Intent(context, PlayerMediaSessionService::class.java)
+    fun startMediaService(context: Context, videoUrl: String) {
+        val intent = Intent(context, PlayerMediaSessionService::class.java).apply {
+            putExtra(PlayerMediaSessionService.EXTRA_VIDEO_URL, videoUrl)
+        }
         ContextCompat.startForegroundService(context, intent)
     }
 
