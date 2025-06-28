@@ -15,9 +15,6 @@ import com.istudio.player.notification.NotificationProvider
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-const val NOTIFICATION_ID = 101
-const val CHANNEL_ID = "media_playback_channel"
-
 @AndroidEntryPoint
 class PlayerMediaSessionService : MediaSessionService() {
 
@@ -25,12 +22,8 @@ class PlayerMediaSessionService : MediaSessionService() {
         const val VIDEO_URL = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
     }
 
-
-    @Inject
-    lateinit var exoPlayer: ExoPlayer
-
-    @Inject
-    lateinit var notificationProvider: NotificationProvider
+    @Inject lateinit var exoPlayer: ExoPlayer
+    @Inject lateinit var notificationProvider: NotificationProvider
 
     private lateinit var mediaSession: MediaSession
 
@@ -38,24 +31,20 @@ class PlayerMediaSessionService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
+        // Create channel and initial notification
         notificationProvider.createPlaybackChannel()
+        // Start foreground notification
+        startForeground(NotificationProvider.NOTIFICATION_ID, notificationProvider.buildInitialNotification(this))
 
-        val initialNotification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(getString(R.string.app_name))
-            .setContentText("Preparing to play...")
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
+        // Setup media item and start playback
+        exoPlayer.apply {
+            val mediaItem = MediaItem.fromUri(VIDEO_URL)
+            setMediaItem(mediaItem)
+            prepare()
+            playWhenReady = true
+        }
 
-        startForeground(NOTIFICATION_ID, initialNotification)
-
-        // Prepare MediaItem
-        val mediaItem = MediaItem.fromUri(VIDEO_URL)
-        exoPlayer.setMediaItem(mediaItem)
-        exoPlayer.prepare()
-        exoPlayer.playWhenReady = true
-
-        // Create media session
+        // Create a session with a session activity that it has to be tied to
         val sessionActivity = PendingIntent.getActivity(
             this, 0,
             Intent(this, MainActivity::class.java),
@@ -66,13 +55,8 @@ class PlayerMediaSessionService : MediaSessionService() {
             .setSessionActivity(sessionActivity)
             .build()
 
-        val notificationProvider = DefaultMediaNotificationProvider.Builder(this)
-            .setChannelId(CHANNEL_ID)
-            .setChannelName(R.string.media_playback_channel_name)
-            .setNotificationId(NOTIFICATION_ID)
-            .build()
-
-        setMediaNotificationProvider(notificationProvider)
+        // Attach media notification provider from NotificationProvider
+        setMediaNotificationProvider(notificationProvider.createMediaNotificationProvider(this))
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession {
