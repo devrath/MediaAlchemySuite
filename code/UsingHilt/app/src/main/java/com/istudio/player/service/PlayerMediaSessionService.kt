@@ -45,19 +45,21 @@ class PlayerMediaSessionService : MediaSessionService() {
         }
 
         // Create a session with a session activity that it has to be tied to
-        val sessionActivity = PendingIntent.getActivity(
-            this, 0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE
-        )
+        val pendingIntent = getPendingIntent()
 
         mediaSession = MediaSession.Builder(this, exoPlayer)
-            .setSessionActivity(sessionActivity)
+            .setSessionActivity(pendingIntent)
             .build()
 
         // Attach media notification provider from NotificationProvider
         setMediaNotificationProvider(notificationProvider.createMediaNotificationProvider(this))
     }
+
+    private fun getPendingIntent(): PendingIntent = PendingIntent.getActivity(
+        this, 0,
+        Intent(this, MainActivity::class.java),
+        PendingIntent.FLAG_IMMUTABLE
+    )
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession {
         return mediaSession
