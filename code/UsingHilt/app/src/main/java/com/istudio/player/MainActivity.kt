@@ -8,6 +8,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -19,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.exoplayer.ExoPlayer
@@ -54,16 +57,14 @@ fun MainScreen(
 ) {
 
     val context = LocalContext.current
-
-    var controller by remember { mutableStateOf<MediaController?>(null) }
+    val controller by viewModel.controllerState
     val dynamicVideoUrl = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
 
     LaunchedEffect(Unit) {
+        // Start the service first
         viewModel.startMediaService(context, dynamicVideoUrl)
-
-        val sessionToken = SessionToken(context, ComponentName(context, PlayerMediaSessionService::class.java))
-        controller = MediaController.Builder(context, sessionToken).buildAsync().await()
-        controller?.play()
+        viewModel.initializeController()
+        viewModel.playVideo()
     }
 
     controller?.let { ctrl ->
@@ -78,7 +79,8 @@ fun MainScreen(
                     useController = true
                 }
             },
-            modifier = modifier
+            modifier = modifier.fillMaxWidth()
+                .height(500.dp)
         )
     }
 }

@@ -2,6 +2,8 @@ package com.istudio.player.di
 
 import android.content.Context
 import androidx.media3.exoplayer.ExoPlayer
+import com.istudio.player.controller.VideoPlayerController
+import com.istudio.player.controller.VideoPlayerControllerImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,6 +21,14 @@ object PlayerModule {
         @ApplicationContext context: Context
     ): ExoPlayer {
         return ExoPlayer.Builder(context).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideVideoPlayerController(
+        @ApplicationContext context: Context
+    ): VideoPlayerController {
+        return VideoPlayerControllerImpl(context)
     }
 
 }
