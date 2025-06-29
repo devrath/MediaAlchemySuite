@@ -60,11 +60,29 @@ fun MainScreen(
     val controller by viewModel.controllerState
     val dynamicVideoUrl = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
 
+    // Example artwork URL - replace with your actual image URL
+    val artworkUrl = "https://picsum.photos/512/512" // Random image for demo
+    // Or use a local drawable: null (will use default)
+
     LaunchedEffect(Unit) {
-        // Start the service first
-        viewModel.startMediaService(context, dynamicVideoUrl)
-        viewModel.initializeController()
-        viewModel.playVideo()
+        try {
+            // Start the service with artwork information
+            viewModel.startMediaService(
+                context = context,
+                videoUrl = dynamicVideoUrl,
+                artworkUrl = artworkUrl,
+                title = "Sample Video",
+                artist = "Learning Container"
+            )
+
+            // Add a small delay to ensure service is started
+            kotlinx.coroutines.delay(500)
+
+            viewModel.initializeController()
+            viewModel.playVideo()
+        } catch (e: Exception) {
+            //Log.e("MainScreen", "Error initializing media player", e)
+        }
     }
 
     controller?.let { ctrl ->
