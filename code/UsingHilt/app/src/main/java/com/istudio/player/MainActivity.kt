@@ -66,22 +66,27 @@ fun MainScreen(
 
     LaunchedEffect(Unit) {
         try {
-            // Start the service with artwork information
-            viewModel.startMediaService(
-                context = context,
-                videoUrl = dynamicVideoUrl,
-                artworkUrl = artworkUrl,
-                title = "Sample Video",
-                artist = "Learning Container"
-            )
+            if (viewModel.isServiceRunning(context)) {
+                // Reconnect to existing service and restore player controls
+                viewModel.checkAndReconnectToService(context)
+            } else {
+                // Service not running — start fresh
+                viewModel.startMediaService(
+                    context = context,
+                    videoUrl = dynamicVideoUrl,
+                    artworkUrl = artworkUrl,
+                    title = "Sample Video",
+                    artist = "Learning Container"
+                )
 
-            // Add a small delay to ensure service is started
-            kotlinx.coroutines.delay(500)
+                // Optional delay to let service settle
+                kotlinx.coroutines.delay(500)
 
-            viewModel.initializeController()
-            viewModel.playVideo()
+                viewModel.initializeController()
+                viewModel.playVideo()
+            }
         } catch (e: Exception) {
-            //Log.e("MainScreen", "Error initializing media player", e)
+            // Handle error appropriately
         }
     }
 

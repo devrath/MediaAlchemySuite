@@ -12,6 +12,8 @@ import javax.inject.Inject
 import androidx.compose.runtime.State
 import com.istudio.player.controllers.VideoPlayerPlaybackController
 import com.istudio.player.controllers.VideoPlayerSessionController
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
@@ -57,6 +59,21 @@ class MainActivityViewModel @Inject constructor(
     }
 
     fun playVideo() = playbackController.play()
+
+    fun isServiceRunning(context: Context): Boolean {
+        return context.getSharedPreferences("player_prefs", Context.MODE_PRIVATE)
+            .getBoolean("service_running", false)
+    }
+
+    fun checkAndReconnectToService(context: Context) {
+        val wasRunning = isServiceRunning(context)
+        if (wasRunning) {
+            viewModelScope.launch {
+                initializeController()
+                //controllerState.value?.setCustomLayout(sessionController.getCustomCommandLayout())
+            }
+        }
+    }
 
     override fun onCleared() {
         playbackController.pause()

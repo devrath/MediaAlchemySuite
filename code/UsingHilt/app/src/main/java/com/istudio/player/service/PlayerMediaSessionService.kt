@@ -28,6 +28,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import androidx.core.content.edit
+
 @AndroidEntryPoint
 class PlayerMediaSessionService : MediaSessionService() {
 
@@ -116,7 +118,16 @@ class PlayerMediaSessionService : MediaSessionService() {
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = mediaSession
 
+    override fun onCreate() {
+        super.onCreate()
+        getSharedPreferences("player_prefs", MODE_PRIVATE)
+            .edit { putBoolean("service_running", true) }
+    }
+
     override fun onDestroy() {
+        getSharedPreferences("player_prefs", MODE_PRIVATE)
+            .edit { putBoolean("service_running", false) }
+
         if (::mediaSession.isInitialized) {
             mediaSession.release()
         }
