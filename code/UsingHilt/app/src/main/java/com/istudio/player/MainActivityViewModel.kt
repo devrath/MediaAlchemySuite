@@ -12,6 +12,7 @@ import com.istudio.player.application.APP_TAG
 import com.istudio.player.controllers.VideoPlaybackController
 import com.istudio.player.controllers.VideoMediaController
 import com.istudio.player.service.PlayerMediaSessionService
+import com.istudio.player.utils.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -40,13 +41,11 @@ class MainActivityViewModel @Inject constructor(
 
     private fun stopVideo() = sessionController.release()
 
-    fun startMediaService(
-        context: Context,
-        videoUrl: String,
-        artworkUrl: String? = null,
-        title: String = "Video Player",
-        artist: String = "Media Player"
-    ) {
+    fun startMediaService(context: Context) {
+        val videoUrl = Constants.VIDEO_URL
+        val artworkUrl = Constants.ART_WORK_URL
+        val title = "Add video player title here"
+        val artist = "Add artist for player here"
         try {
             val intent = Intent(context, PlayerMediaSessionService::class.java).apply {
                 putExtra(PlayerMediaSessionService.EXTRA_VIDEO_URL, videoUrl)
