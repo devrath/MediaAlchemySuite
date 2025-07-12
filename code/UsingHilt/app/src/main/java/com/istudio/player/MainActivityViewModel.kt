@@ -69,10 +69,10 @@ class MainActivityViewModel @Inject constructor(
                         duration = mediaState.duration
                         _uiState.value = UIState.Ready
                     }
+
+                    else -> { }
                 }
             }
-
-
         }
     }
 

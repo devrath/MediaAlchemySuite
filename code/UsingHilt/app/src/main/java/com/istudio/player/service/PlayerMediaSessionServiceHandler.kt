@@ -3,10 +3,17 @@ package com.istudio.player.service
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class PlayerMediaSessionServiceHandler @Inject constructor(
@@ -16,7 +23,8 @@ class PlayerMediaSessionServiceHandler @Inject constructor(
         MutableStateFlow(JetAudioState.Initial)
     val audioState: StateFlow<JetAudioState> = _audioState.asStateFlow()
 
-    private var job: Job? = null
+    private var progressJob: Job? = null
+    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     init {
         exoPlayer.addListener(this)
@@ -38,32 +46,24 @@ class PlayerMediaSessionServiceHandler @Inject constructor(
         seekPosition: Long = 0,
     ) {
         when (playerEvent) {
-            PlayerEvent.Backward -> exoPlayer.seekBack()
-            PlayerEvent.Forward -> exoPlayer.seekForward()
-            PlayerEvent.SeekToNext -> exoPlayer.seekToNext()
-            PlayerEvent.PlayPause -> playOrPause()
-            PlayerEvent.SeekTo -> exoPlayer.seekTo(seekPosition)
-            PlayerEvent.SelectedAudioChange -> {
-                when (selectedAudioIndex) {
-                    exoPlayer.currentMediaItemIndex -> {
-                        playOrPause()
-                    }
-
-                    else -> {
-                        exoPlayer.seekToDefaultPosition(selectedAudioIndex)
-                        _audioState.value = JetAudioState.Playing(
-                            isPlaying = true
-                        )
-                        exoPlayer.playWhenReady = true
-                    }
+            is PlayerEvent.Backward -> exoPlayer.seekBack()
+            is PlayerEvent.Forward -> exoPlayer.seekForward()
+            is PlayerEvent.SeekToNext -> exoPlayer.seekToNext()
+            is PlayerEvent.PlayPause -> playOrPause()
+            is PlayerEvent.SeekTo -> exoPlayer.seekTo(seekPosition)
+            is PlayerEvent.SelectedAudioChange -> {
+                if (selectedAudioIndex == exoPlayer.currentMediaItemIndex) {
+                    playOrPause()
+                } else {
+                    exoPlayer.seekToDefaultPosition(selectedAudioIndex)
+                    _audioState.value = JetAudioState.Playing(isPlaying = true)
+                    exoPlayer.playWhenReady = true
+                    startProgressUpdate()
                 }
             }
-
-            is PlayerEvent.Stop -> {}
+            is PlayerEvent.Stop -> release()
             is PlayerEvent.UpdateProgress -> {
-                exoPlayer.seekTo(
-                    (exoPlayer.duration * playerEvent.newProgress).toLong()
-                )
+                exoPlayer.seekTo((exoPlayer.duration * playerEvent.newProgress).toLong())
             }
         }
     }
@@ -80,19 +80,46 @@ class PlayerMediaSessionServiceHandler @Inject constructor(
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         _audioState.value = JetAudioState.Playing(isPlaying = isPlaying)
+        _audioState.value = JetAudioState.CurrentPlaying(exoPlayer.currentMediaItemIndex)
+
+        if (isPlaying) {
+            startProgressUpdate()
+        } else {
+            stopProgressUpdate()
+        }
     }
 
     private suspend fun playOrPause() {
         if (exoPlayer.isPlaying) {
             exoPlayer.pause()
+            stopProgressUpdate()
         } else {
             exoPlayer.play()
-            _audioState.value = JetAudioState.Playing(
-                isPlaying = true
-            )
+            _audioState.value = JetAudioState.Playing(isPlaying = true)
+            startProgressUpdate()
         }
     }
 
+    private fun startProgressUpdate() {
+        progressJob?.cancel()
+        progressJob = coroutineScope.launch {
+            while (true) {
+                delay(500)
+                _audioState.value = JetAudioState.Progress(exoPlayer.currentPosition)
+            }
+        }
+    }
+
+    private fun stopProgressUpdate() {
+        progressJob?.cancel()
+        _audioState.value = JetAudioState.Playing(isPlaying = false)
+    }
+
+    fun release() {
+        coroutineScope.cancel()
+        exoPlayer.removeListener(this)
+        stopProgressUpdate()
+    }
 }
 
 sealed class PlayerEvent {
@@ -112,4 +139,5 @@ sealed class JetAudioState {
     data class Progress(val progress: Long) : JetAudioState()
     data class Buffering(val progress: Long) : JetAudioState()
     data class Playing(val isPlaying: Boolean) : JetAudioState()
+    data class CurrentPlaying(val mediaItemIndex: Int) : JetAudioState()
 }
