@@ -1,28 +1,18 @@
 package com.istudio.player.service
 
-import android.app.PendingIntent
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
-import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import com.istudio.player.MainActivity
-import com.istudio.player.application.APP_TAG
-import com.istudio.player.callbacks.PlayerMediaSessionCallback
 import com.istudio.player.di.qualifiers.MainActivityClass
 import com.istudio.player.notification.NotificationProviderContract
-import com.istudio.player.notification.NotificationProviderContractImpl
-import com.istudio.player.utils.Constants.NOTIFICATION_ID
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -49,12 +39,6 @@ class PlayerMediaSessionService : MediaSessionService() {
 
     @UnstableApi
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Handle null intent gracefully
-        if (intent == null) {
-            Log.w(APP_TAG, "Service started with null intent")
-            return START_NOT_STICKY
-        }
-
         if (!hasInitialized) {
             hasInitialized = true
             initializeSession(intent)
@@ -83,10 +67,6 @@ class PlayerMediaSessionService : MediaSessionService() {
 
     @UnstableApi
     private fun initializeSession(intent: Intent?) {
-        // Create a notification channel
-        createChannel()
-        // Start Foreground service
-        startAppForegroundService()
         // Build Media Item
         val mediaItem = buildMediaItem(intent)
         // Prepare ExoPlayer with MediaItem
@@ -130,16 +110,5 @@ class PlayerMediaSessionService : MediaSessionService() {
             prepare()
             playWhenReady = true
         }
-    }
-
-    private fun startAppForegroundService() {
-        startForeground(
-            NOTIFICATION_ID,
-            notificationProviderContract.buildInitialNotification(this)
-        )
-    }
-
-    private fun createChannel() {
-        notificationProviderContract.createPlaybackChannel()
     }
 }

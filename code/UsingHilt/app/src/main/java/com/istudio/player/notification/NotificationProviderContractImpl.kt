@@ -1,10 +1,8 @@
 package com.istudio.player.notification
 
-import android.app.Notification
 import android.content.Context
 import android.os.Bundle
 import androidx.annotation.OptIn
-import androidx.core.app.NotificationCompat
 import androidx.media3.common.util.NotificationUtil
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.CommandButton
@@ -25,6 +23,10 @@ class NotificationProviderContractImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : NotificationProviderContract {
 
+    init {
+        createPlaybackChannel()
+    }
+
     @OptIn(UnstableApi::class)
     override fun createPlaybackChannel() {
         NotificationUtil.createNotificationChannel(
@@ -34,15 +36,6 @@ class NotificationProviderContractImpl @Inject constructor(
             R.string.media_playback_channel_description,
             NotificationUtil.IMPORTANCE_LOW
         )
-    }
-
-    override fun buildInitialNotification(context: Context): Notification {
-        return NotificationCompat.Builder(context, PLAYBACK_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(context.getString(R.string.app_name))
-            .setContentText("Preparing to play...")
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
     }
 
     @OptIn(UnstableApi::class)
@@ -61,13 +54,13 @@ class NotificationProviderContractImpl @Inject constructor(
 
         return listOf(
             CommandButton.Builder(CommandButton.ICON_UNDEFINED)
-                .setIconResId(R.drawable.replay_10)
+                .setCustomIconResId(R.drawable.replay_10)
                 .setDisplayName("Rewind")
                 .setSessionCommand(rewindCommand)
                 .build(),
 
             CommandButton.Builder(CommandButton.ICON_UNDEFINED)
-                .setIconResId(R.drawable.forward_10)
+                .setCustomIconResId(R.drawable.forward_10)
                 .setDisplayName("Forward")
                 .setSessionCommand(forwardCommand)
                 .build()
