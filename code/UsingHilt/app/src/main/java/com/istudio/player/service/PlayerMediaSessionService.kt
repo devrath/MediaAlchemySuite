@@ -1,6 +1,8 @@
 package com.istudio.player.service
 
 import android.app.PendingIntent
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
@@ -14,10 +16,12 @@ import androidx.media3.session.MediaSessionService
 import com.istudio.player.MainActivity
 import com.istudio.player.application.APP_TAG
 import com.istudio.player.callbacks.PlayerMediaSessionCallback
+import com.istudio.player.di.qualifiers.MainActivityClass
 import com.istudio.player.notification.NotificationProviderContract
 import com.istudio.player.notification.NotificationProviderContractImpl
 import com.istudio.player.utils.Constants.NOTIFICATION_ID
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -33,7 +37,13 @@ class PlayerMediaSessionService : MediaSessionService() {
     @Inject lateinit var exoPlayer: ExoPlayer
     @Inject lateinit var notificationProviderContract: NotificationProviderContract
 
-    private lateinit var mediaSession: MediaSession
+    @Inject
+    @MainActivityClass
+    lateinit var playerMainActionClass: String
+
+    @Inject
+    lateinit var mediaSession: MediaSession
+
     private var hasInitialized = false
 
     @UnstableApi
@@ -75,27 +85,13 @@ class PlayerMediaSessionService : MediaSessionService() {
         val mediaItem = buildMediaItem(intent)
         // Prepare ExoPlayer with MediaItem
         prepareExoPlayer(mediaItem)
-        // Prepare MediaSession
-        prepareMediaSession()
         // Set layout for media session
         mediaSession.setCustomLayout(notificationProviderContract.provideCustomCommandLayout())
         // Set media notification provider for service
         setMediaNotificationProvider(notificationProviderContract.createMediaNotificationProvider(this))
     }
 
-    @OptIn(UnstableApi::class)
-    fun prepareMediaSession(){
-        val sessionIntent = PendingIntent.getActivity(
-            this, 0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE
-        )
 
-        mediaSession = MediaSession.Builder(this, exoPlayer)
-            .setSessionActivity(sessionIntent)
-            .setCallback(PlayerMediaSessionCallback(exoPlayer))
-            .build()
-    }
 
     @OptIn(UnstableApi::class)
     private fun buildMediaItem(intent: Intent?): MediaItem {
