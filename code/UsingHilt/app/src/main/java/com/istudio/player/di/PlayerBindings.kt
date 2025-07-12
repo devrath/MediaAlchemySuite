@@ -1,8 +1,8 @@
 package com.istudio.player.di
 
-import com.istudio.player.controllers.VideoPlayerControllerImpl
-import com.istudio.player.controllers.VideoPlayerPlaybackController
-import com.istudio.player.controllers.VideoPlayerSessionController
+import com.istudio.player.controllers.VideoControllerImpl
+import com.istudio.player.controllers.VideoPlaybackController
+import com.istudio.player.controllers.VideoMediaController
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -13,8 +13,9 @@ import dagger.hilt.components.SingletonComponent
 interface PlayerBindings {
 
     @Binds
-    fun bindSessionController(impl: VideoPlayerControllerImpl): VideoPlayerSessionController
+    fun bindSessionController(impl: VideoControllerImpl): VideoMediaController
 
     @Binds
-    fun bindPlaybackController(impl: VideoPlayerControllerImpl): VideoPlayerPlaybackController
+    fun bindPlaybackController(impl: VideoControllerImpl): VideoPlaybackController
+
 }

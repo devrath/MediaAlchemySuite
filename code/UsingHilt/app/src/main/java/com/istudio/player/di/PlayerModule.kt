@@ -2,7 +2,6 @@ package com.istudio.player.di
 
 import android.content.Context
 import androidx.media3.exoplayer.ExoPlayer
-import com.istudio.player.controllers.MediaBinderControllerImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,11 +20,4 @@ object PlayerModule {
     ): ExoPlayer {
         return ExoPlayer.Builder(context).build()
     }
-
-    @Provides
-    @Singleton
-    fun provideMediaControllerManager(
-        @ApplicationContext context: Context
-    ): MediaBinderControllerImpl = MediaBinderControllerImpl(context)
-
 }

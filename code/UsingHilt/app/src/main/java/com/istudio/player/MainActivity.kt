@@ -1,8 +1,7 @@
 package com.istudio.player
 
-import android.content.ComponentName
-import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,24 +14,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.SessionToken
 import androidx.media3.ui.PlayerView
-import com.istudio.player.service.PlayerMediaSessionService
+import com.istudio.player.application.APP_TAG
 import com.istudio.player.ui.theme.PlayerTheme
+import com.istudio.player.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
-import androidx.media3.session.MediaController
-import kotlinx.coroutines.guava.await
-
+import kotlinx.coroutines.delay
 
 
 @AndroidEntryPoint
@@ -55,42 +47,34 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     viewModel: MainActivityViewModel = viewModel()
 ) {
-
+    val dynamicVideoUrl = Constants.VIDEO_URL
+    val artworkUrl = Constants.ART_WORK_URL
     val context = LocalContext.current
     val controller by viewModel.controllerState
-    val dynamicVideoUrl = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
-
-    // Example artwork URL - replace with your actual image URL
-    val artworkUrl = "https://picsum.photos/512/512" // Random image for demo
-    // Or use a local drawable: null (will use default)
 
     LaunchedEffect(Unit) {
         try {
-            if (viewModel.isServiceRunning(context)) {
-                // Reconnect to existing service and restore player controls
-                viewModel.checkAndReconnectToService(context)
-            } else {
-                // Service not running — start fresh
-                viewModel.startMediaService(
-                    context = context,
-                    videoUrl = dynamicVideoUrl,
-                    artworkUrl = artworkUrl,
-                    title = "Sample Video",
-                    artist = "Learning Container"
-                )
-
-                // Optional delay to let service settle
-                kotlinx.coroutines.delay(500)
-
-                viewModel.initializeController()
-                viewModel.playVideo()
+            // Service not running — start fresh
+            viewModel.startMediaService(
+                context = context,
+                videoUrl = dynamicVideoUrl,
+                artworkUrl = artworkUrl,
+                title = "Sample Video",
+                artist = "Learning Container"
+            )
+            // Optional delay to let the service settle
+            delay(500)
+            viewModel.apply {
+                initializeController()
+                playVideo()
             }
         } catch (e: Exception) {
-            // Handle error appropriately
+            Log.e(APP_TAG, "Error while initializing controller", e)
         }
     }
 
     controller?.let { ctrl ->
+        //Observe the controller state and update the UI accordingly because the controller initialises asynchronously
         AndroidView(
             factory = {
                 PlayerView(context).apply {
@@ -102,8 +86,7 @@ fun MainScreen(
                     useController = true
                 }
             },
-            modifier = modifier.fillMaxWidth()
-                .height(500.dp)
+            modifier = modifier.fillMaxWidth().height(500.dp)
         )
     }
 }

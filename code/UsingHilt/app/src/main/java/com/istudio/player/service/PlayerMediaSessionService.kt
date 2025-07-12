@@ -2,33 +2,23 @@ package com.istudio.player.service
 
 import android.app.PendingIntent
 import android.content.Intent
-import android.graphics.Bitmap
-import android.net.Uri
-import android.os.Looper
 import androidx.annotation.OptIn
-import androidx.core.content.FileProvider
+import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.istudio.player.MainActivity
+import com.istudio.player.application.APP_TAG
 import com.istudio.player.callbacks.PlayerMediaSessionCallback
 import com.istudio.player.notification.NotificationProvider
+import com.istudio.player.utils.Constants.NOTIFICATION_ID
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import androidx.core.net.toUri
-import androidx.media3.common.util.Log
-import com.istudio.player.R
-import com.istudio.player.application.APP_TAG
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
-import androidx.core.content.edit
 
 @AndroidEntryPoint
 class PlayerMediaSessionService : MediaSessionService() {
@@ -61,29 +51,61 @@ class PlayerMediaSessionService : MediaSessionService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = mediaSession
+
+    override fun onCreate() {
+        super.onCreate()
+    }
+
+    override fun onDestroy() {
+        if (::mediaSession.isInitialized) {
+            mediaSession.release()
+        }
+        exoPlayer.release()
+        super.onDestroy()
+    }
+
     @UnstableApi
     private fun initializeSession(intent: Intent?) {
         // Create a notification channel
-        notificationProvider.createPlaybackChannel()
-        startForeground(
-            NotificationProvider.NOTIFICATION_ID,
-            notificationProvider.buildInitialNotification(this)
+        createChannel()
+        // Start Foreground service
+        startAppForegroundService()
+        // Build Media Item
+        val mediaItem = buildMediaItem(intent)
+        // Prepare ExoPlayer with MediaItem
+        prepareExoPlayer(mediaItem)
+        // Prepare MediaSession
+        prepareMediaSession()
+        // Set layout for media session
+        mediaSession.setCustomLayout(notificationProvider.provideCustomCommandLayout())
+        // Set media notification provider for service
+        setMediaNotificationProvider(notificationProvider.createMediaNotificationProvider(this))
+    }
+
+    @OptIn(UnstableApi::class)
+    fun prepareMediaSession(){
+        val sessionIntent = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE
         )
 
-        val videoUrl = intent?.getStringExtra(EXTRA_VIDEO_URL)
-        if (videoUrl.isNullOrEmpty()) {
-            Log.e(APP_TAG, "Video URL is required but not provided")
-            stopSelf()
-            return
-        }
+        mediaSession = MediaSession.Builder(this, exoPlayer)
+            .setSessionActivity(sessionIntent)
+            .setCallback(PlayerMediaSessionCallback(exoPlayer))
+            .build()
+    }
 
-        val artworkUrl = intent.getStringExtra(EXTRA_ARTWORK_URL)
-        val title = intent.getStringExtra(EXTRA_TITLE) ?: "Unknown Title"
-        val artist = intent.getStringExtra(EXTRA_ARTIST) ?: "Unknown Artist"
+    @OptIn(UnstableApi::class)
+    private fun buildMediaItem(intent: Intent?): MediaItem {
+        val videoUrl = intent?.getStringExtra(EXTRA_VIDEO_URL)
+        val artworkUrl = intent?.getStringExtra(EXTRA_ARTWORK_URL)
+        val title = intent?.getStringExtra(EXTRA_TITLE) ?: "Unknown Title"
+        val artist = intent?.getStringExtra(EXTRA_ARTIST) ?: "Unknown Artist"
 
         // Create MediaItem with metadata including artwork
-        val mediaItemBuilder = MediaItem.Builder()
-            .setUri(videoUrl)
+        val mediaItemBuilder = MediaItem.Builder().setUri(videoUrl)
 
         // Build metadata
         val metadataBuilder = MediaMetadata.Builder()
@@ -95,43 +117,25 @@ class PlayerMediaSessionService : MediaSessionService() {
             .setMediaMetadata(metadataBuilder.build())
             .build()
 
+        return mediaItem
+    }
+
+    private fun prepareExoPlayer(mediaItem: MediaItem) {
         exoPlayer.apply {
             setMediaItem(mediaItem)
             prepare()
             playWhenReady = true
         }
+    }
 
-        val sessionIntent = PendingIntent.getActivity(
-            this, 0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE
+    private fun startAppForegroundService() {
+        startForeground(
+            NOTIFICATION_ID,
+            notificationProvider.buildInitialNotification(this)
         )
-
-        mediaSession = MediaSession.Builder(this, exoPlayer)
-            .setSessionActivity(sessionIntent)
-            .setCallback(PlayerMediaSessionCallback(exoPlayer))
-            .build()
-
-        mediaSession.setCustomLayout(notificationProvider.provideCustomCommandLayout())
-        setMediaNotificationProvider(notificationProvider.createMediaNotificationProvider(this))
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = mediaSession
-
-    override fun onCreate() {
-        super.onCreate()
-        getSharedPreferences("player_prefs", MODE_PRIVATE)
-            .edit { putBoolean("service_running", true) }
-    }
-
-    override fun onDestroy() {
-        getSharedPreferences("player_prefs", MODE_PRIVATE)
-            .edit { putBoolean("service_running", false) }
-
-        if (::mediaSession.isInitialized) {
-            mediaSession.release()
-        }
-        exoPlayer.release()
-        super.onDestroy()
+    private fun createChannel() {
+        notificationProvider.createPlaybackChannel()
     }
 }
