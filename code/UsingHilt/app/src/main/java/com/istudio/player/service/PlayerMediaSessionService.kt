@@ -3,7 +3,6 @@ package com.istudio.player.service
 import android.app.PendingIntent
 import android.content.Intent
 import androidx.annotation.OptIn
-import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -15,7 +14,8 @@ import androidx.media3.session.MediaSessionService
 import com.istudio.player.MainActivity
 import com.istudio.player.application.APP_TAG
 import com.istudio.player.callbacks.PlayerMediaSessionCallback
-import com.istudio.player.notification.NotificationProvider
+import com.istudio.player.notification.NotificationProviderContract
+import com.istudio.player.notification.NotificationProviderContractImpl
 import com.istudio.player.utils.Constants.NOTIFICATION_ID
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -31,7 +31,7 @@ class PlayerMediaSessionService : MediaSessionService() {
     }
 
     @Inject lateinit var exoPlayer: ExoPlayer
-    @Inject lateinit var notificationProvider: NotificationProvider
+    @Inject lateinit var notificationProviderContract: NotificationProviderContract
 
     private lateinit var mediaSession: MediaSession
     private var hasInitialized = false
@@ -78,9 +78,9 @@ class PlayerMediaSessionService : MediaSessionService() {
         // Prepare MediaSession
         prepareMediaSession()
         // Set layout for media session
-        mediaSession.setCustomLayout(notificationProvider.provideCustomCommandLayout())
+        mediaSession.setCustomLayout(notificationProviderContract.provideCustomCommandLayout())
         // Set media notification provider for service
-        setMediaNotificationProvider(notificationProvider.createMediaNotificationProvider(this))
+        setMediaNotificationProvider(notificationProviderContract.createMediaNotificationProvider(this))
     }
 
     @OptIn(UnstableApi::class)
@@ -131,11 +131,11 @@ class PlayerMediaSessionService : MediaSessionService() {
     private fun startAppForegroundService() {
         startForeground(
             NOTIFICATION_ID,
-            notificationProvider.buildInitialNotification(this)
+            notificationProviderContract.buildInitialNotification(this)
         )
     }
 
     private fun createChannel() {
-        notificationProvider.createPlaybackChannel()
+        notificationProviderContract.createPlaybackChannel()
     }
 }

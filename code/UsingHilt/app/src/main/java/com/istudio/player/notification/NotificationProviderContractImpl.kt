@@ -1,6 +1,5 @@
 package com.istudio.player.notification
 
-import android.app.Application
 import android.app.Notification
 import android.content.Context
 import android.os.Bundle
@@ -17,17 +16,19 @@ import com.istudio.player.callbacks.PlayerMediaSessionCallback
 import com.istudio.player.utils.Constants.CHANNEL_NAME
 import com.istudio.player.utils.Constants.NOTIFICATION_ID
 import com.istudio.player.utils.Constants.PLAYBACK_CHANNEL_ID
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class NotificationProvider @Inject constructor(
-    private val application: Application
-) {
+class NotificationProviderContractImpl @Inject constructor(
+    @ApplicationContext private val context: Context
+) : NotificationProviderContract {
+
     @OptIn(UnstableApi::class)
-    fun createPlaybackChannel() {
+    override fun createPlaybackChannel() {
         NotificationUtil.createNotificationChannel(
-            application,
+            context,
             PLAYBACK_CHANNEL_ID,
             R.string.media_playback_channel_name,
             R.string.media_playback_channel_description,
@@ -35,7 +36,7 @@ class NotificationProvider @Inject constructor(
         )
     }
 
-    fun buildInitialNotification(context: Context): Notification {
+    override fun buildInitialNotification(context: Context): Notification {
         return NotificationCompat.Builder(context, PLAYBACK_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(context.getString(R.string.app_name))
@@ -45,7 +46,7 @@ class NotificationProvider @Inject constructor(
     }
 
     @OptIn(UnstableApi::class)
-    fun createMediaNotificationProvider(context: Context): MediaNotification.Provider {
+    override fun createMediaNotificationProvider(context: Context): MediaNotification.Provider {
         return DefaultMediaNotificationProvider.Builder(context)
             .setChannelId(PLAYBACK_CHANNEL_ID)
             .setChannelName(CHANNEL_NAME)
@@ -54,7 +55,7 @@ class NotificationProvider @Inject constructor(
     }
 
     @OptIn(UnstableApi::class)
-    fun provideCustomCommandLayout(): List<CommandButton> {
+    override fun provideCustomCommandLayout(): List<CommandButton> {
         val rewindCommand = SessionCommand(PlayerMediaSessionCallback.CUSTOM_REWIND, Bundle())
         val forwardCommand = SessionCommand(PlayerMediaSessionCallback.CUSTOM_FORWARD, Bundle())
 
@@ -65,7 +66,6 @@ class NotificationProvider @Inject constructor(
                 .setSessionCommand(rewindCommand)
                 .build(),
 
-            // Do the same for the forward button.
             CommandButton.Builder(CommandButton.ICON_UNDEFINED)
                 .setIconResId(R.drawable.forward_10)
                 .setDisplayName("Forward")
@@ -73,5 +73,4 @@ class NotificationProvider @Inject constructor(
                 .build()
         )
     }
-
 }

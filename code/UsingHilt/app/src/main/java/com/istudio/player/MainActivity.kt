@@ -95,9 +95,9 @@ private fun DisplayPlayer(
 
 @Composable
 private fun StartServiceInitiatePlay(viewModel: MainActivityViewModel, onControllerLoading: () -> Unit) {
+    onControllerLoading()
     val context = LocalContext.current
     LaunchedEffect(Unit) {
-        onControllerLoading()
         try {
             // Step 1: Start service
             viewModel.startMediaService(context)
