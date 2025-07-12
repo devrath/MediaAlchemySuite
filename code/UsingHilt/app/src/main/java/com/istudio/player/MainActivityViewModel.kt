@@ -42,11 +42,12 @@ class MainActivityViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private var isServiceRunning = false
+
     var duration by savedStateHandle.saveable { mutableLongStateOf(0L) }
     var progress by savedStateHandle.saveable { mutableFloatStateOf(0f) }
     var progressString by savedStateHandle.saveable { mutableStateOf("00:00") }
     var isPlaying by savedStateHandle.saveable { mutableStateOf(false) }
-
 
     private val _controllerState = mutableStateOf<MediaController?>(null)
     val controllerState: State<MediaController?> = _controllerState
@@ -96,23 +97,26 @@ class MainActivityViewModel @Inject constructor(
     private fun stopVideo() = sessionController.release()
 
     fun startMediaService(context: Context) {
-        val videoUrl = Constants.VIDEO_URL
-        val artworkUrl = Constants.ART_WORK_URL
-        val title = "Add video player title here"
-        val artist = "Add artist for player here"
-        try {
-            val intent = Intent(context, PlayerMediaSessionService::class.java).apply {
-                putExtra(PlayerMediaSessionService.EXTRA_VIDEO_URL, videoUrl)
-                artworkUrl?.let {
-                    putExtra(PlayerMediaSessionService.EXTRA_ARTWORK_URL, it)
+        if (!isServiceRunning) {
+            val videoUrl = Constants.VIDEO_URL
+            val artworkUrl = Constants.ART_WORK_URL
+            val title = "Add video player title here"
+            val artist = "Add artist for player here"
+            try {
+                val intent = Intent(context, PlayerMediaSessionService::class.java).apply {
+                    putExtra(PlayerMediaSessionService.EXTRA_VIDEO_URL, videoUrl)
+                    artworkUrl?.let {
+                        putExtra(PlayerMediaSessionService.EXTRA_ARTWORK_URL, it)
+                    }
+                    putExtra(PlayerMediaSessionService.EXTRA_TITLE, title)
+                    putExtra(PlayerMediaSessionService.EXTRA_ARTIST, artist)
                 }
-                putExtra(PlayerMediaSessionService.EXTRA_TITLE, title)
-                putExtra(PlayerMediaSessionService.EXTRA_ARTIST, artist)
+                ContextCompat.startForegroundService(context, intent)
+                isServiceRunning = true
+                Log.d(APP_TAG, "Media service started successfully")
+            } catch (e: Exception) {
+                Log.e(APP_TAG, "Media service failed to start", e)
             }
-            ContextCompat.startForegroundService(context, intent)
-            Log.d(APP_TAG, "Media service started successfully")
-        } catch (e: Exception) {
-            Log.e(APP_TAG, "Media service failed to start", e)
         }
     }
 

@@ -8,6 +8,7 @@ import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -68,8 +69,13 @@ class PlayerMediaSessionService : MediaSessionService() {
     }
 
     override fun onDestroy() {
-        if (::mediaSession.isInitialized) {
-            mediaSession.release()
+        mediaSession.apply {
+            release()
+            if (player.playbackState != Player.STATE_IDLE) {
+                player.seekTo(0)
+                player.playWhenReady = false
+                player.stop()
+            }
         }
         exoPlayer.release()
         super.onDestroy()
