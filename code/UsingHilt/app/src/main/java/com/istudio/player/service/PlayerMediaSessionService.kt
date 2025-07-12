@@ -122,7 +122,9 @@ class PlayerMediaSessionService : MediaSessionService() {
 
     private fun prepareExoPlayer(mediaItem: MediaItem) {
         exoPlayer.apply {
+            // Set the media item to be played.
             setMediaItem(mediaItem)
+            // Prepare the player.
             prepare()
             playWhenReady = true
         }
