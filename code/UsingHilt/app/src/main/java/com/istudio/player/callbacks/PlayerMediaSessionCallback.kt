@@ -32,6 +32,9 @@ class PlayerMediaSessionCallback(
 
         val playerCommands = Player.Commands.Builder()
             .addAll(player.availableCommands)
+            // Explicitly add seek commands for the progress bar
+            .add(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
+            .add(Player.COMMAND_SEEK_TO_DEFAULT_POSITION)
             .build()
 
         return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
