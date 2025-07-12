@@ -7,16 +7,23 @@ import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -25,10 +32,9 @@ import androidx.media3.session.MediaController
 import androidx.media3.ui.PlayerView
 import com.istudio.player.application.APP_TAG
 import com.istudio.player.ui.theme.PlayerTheme
-import com.istudio.player.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 
+val CONTAINER_HEIGHT = 500.dp
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -51,34 +57,47 @@ fun MainScreen(
     viewModel: MainActivityViewModel = viewModel()
 ) {
     val controller by viewModel.controllerState
+    // Show loading until the controller is initialised
+    var isControllerLoading by remember { mutableStateOf(true) }
     // Start service and initiate playback
-    StartServiceInitiatePlay(viewModel)
+    StartServiceInitiatePlay(viewModel, onControllerLoading = {
+        isControllerLoading = true
+    })
+    // Stop loading once the controller is ready
+    LaunchedEffect(controller) {
+        if (controller != null) {
+            isControllerLoading = false
+        }
+    }
     // Show PlayerView only when the controller is ready
-    DisplayPlayer(controller, modifier)
+    when {
+        isControllerLoading -> LoadingIndicator(modifier)
+        else -> DisplayPlayer(controller, modifier)
+    }
 }
 
 @Composable
 private fun DisplayPlayer(
     controller: MediaController?,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val playerHeight = 500.dp
     if (controller != null) {
         val playerView = remember(controller) {
             preparePlayerView(context, controller)
         }
         AndroidView(
             factory = { playerView },
-            modifier = modifier.fillMaxWidth().height(playerHeight)
+            modifier = modifier.fillMaxWidth().height(CONTAINER_HEIGHT)
         )
     }
 }
 
 @Composable
-private fun StartServiceInitiatePlay(viewModel: MainActivityViewModel) {
+private fun StartServiceInitiatePlay(viewModel: MainActivityViewModel, onControllerLoading: () -> Unit) {
     val context = LocalContext.current
     LaunchedEffect(Unit) {
+        onControllerLoading()
         try {
             // Step 1: Start service
             viewModel.startMediaService(context)
@@ -103,4 +122,17 @@ private fun preparePlayerView(
         ViewGroup.LayoutParams.WRAP_CONTENT
     )
     useController = true
+}
+
+@Composable
+private fun LoadingIndicator(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(CONTAINER_HEIGHT)
+            .background(Color.LightGray),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
 }
