@@ -13,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -120,13 +121,20 @@ class MainActivityViewModel @Inject constructor(
         }
     }
 
+    @OptIn(UnstableApi::class)
     fun startNewMedia() {
         val videoUrl = Constants.VIDEO_URL
         val artworkUrl = Constants.ART_WORK_URL
         val title = "Title-1"
         val artist = "Artist-1"
 
-        val mediaItem = MediaItem.Builder().setUri(videoUrl)
+        val mimeType = when {
+            videoUrl.endsWith(".m3u8", ignoreCase = true) -> MimeTypes.APPLICATION_M3U8
+            videoUrl.endsWith(".mp4", ignoreCase = true) -> MimeTypes.VIDEO_MP4
+            else -> MimeTypes.VIDEO_UNKNOWN // fallback
+        }
+
+        val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(mimeType)
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(title)
