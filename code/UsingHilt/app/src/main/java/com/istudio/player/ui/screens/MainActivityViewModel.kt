@@ -1,4 +1,4 @@
-package com.istudio.player
+package com.istudio.player.ui.screens
 
 import android.content.Context
 import android.content.Intent

@@ -1,27 +1,19 @@
-package com.istudio.player
+package com.istudio.player.ui.screens
 
 import android.content.Context
-import android.os.Bundle
 import android.view.ViewGroup
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,73 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.ui.PlayerView
-import com.istudio.player.ui.theme.PlayerTheme
-import dagger.hilt.android.AndroidEntryPoint
-
-val CONTAINER_HEIGHT = 500.dp
-
-@AndroidEntryPoint
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            PlayerTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MainScreen(modifier = Modifier.padding(innerPadding))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun MainScreen(
-    modifier: Modifier = Modifier,
-    viewModel: MainActivityViewModel = viewModel()
-) {
-    val controller by viewModel.controllerState
-    val playerState by viewModel.playerState.collectAsState()
-
-    when(playerState) {
-        PlayerState.PlayerBuffering -> {
-            LoadingIndicator(modifier)
-        }
-        PlayerState.PlayerEnded -> {
-            EndedUI(modifier) {
-                viewModel.startNewMedia()
-            }
-        }
-        PlayerState.PlayerIdle -> {
-            IdleUI(modifier) {
-                viewModel.startNewMedia()
-            }
-        }
-        PlayerState.PlayerReady,
-        PlayerState.PlayerPlaying,
-        PlayerState.PlayerPaused -> {
-            DisplayPlayer(controller, modifier) {
-                viewModel.startNewMedia()
-            }
-        }
-        is PlayerState.PlayerError -> {
-            val errorMessage = (playerState as PlayerState.PlayerError).exception.message ?: "Unknown error"
-            ErrorUI(modifier, errorMessage) {
-                viewModel.startNewMedia()
-            }
-        }
-        is PlayerState.PlayerSuppressed -> {
-            val reason = (playerState as PlayerState.PlayerSuppressed).reason
-            SuppressedUI(modifier, reason) {
-                viewModel.startNewMedia()
-            }
-        }
-    }
-}
 
 @Composable
 fun ErrorUI(modifier: Modifier = Modifier, message: String, onRetry: () -> Unit) {
@@ -179,7 +107,7 @@ fun IdleUI(modifier: Modifier = Modifier, onClick: () -> Unit) {
 
 
 @Composable
-private fun DisplayPlayer(
+fun DisplayPlayer(
     controller: MediaController?,
     modifier: Modifier = Modifier,
     onClick: ()-> Unit
@@ -224,7 +152,7 @@ private fun preparePlayerView(
 }
 
 @Composable
-private fun LoadingIndicator(modifier: Modifier = Modifier) {
+fun LoadingIndicator(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()

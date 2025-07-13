@@ -6,7 +6,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import com.istudio.player.MainActivity
+import com.istudio.player.ui.screens.MainActivity
 import com.istudio.player.di.qualifiers.OsVersionCode
 import javax.inject.Singleton
 
