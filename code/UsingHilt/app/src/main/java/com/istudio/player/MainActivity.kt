@@ -2,7 +2,6 @@ package com.istudio.player
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,11 +20,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,7 +32,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.session.MediaController
 import androidx.media3.ui.PlayerView
-import com.istudio.player.application.APP_TAG
 import com.istudio.player.ui.theme.PlayerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -62,26 +58,65 @@ fun MainScreen(
     viewModel: MainActivityViewModel = viewModel()
 ) {
     val controller by viewModel.controllerState
-    // Show loading until the controller is initialised
-    var isControllerLoading by remember { mutableStateOf(true) }
-    // Start service and initiate playback
-    StartServiceInitiatePlay(viewModel, onControllerLoading = {
-        isControllerLoading = true
-    })
-    // Stop loading once the controller is ready
-    LaunchedEffect(controller) {
-        if (controller != null) {
-            isControllerLoading = false
+    val playerState by viewModel.playerState.collectAsState()
+
+    when(playerState) {
+        PlayerState.PlayerBuffering -> {
+            LoadingIndicator(modifier)
+        }
+        PlayerState.PlayerEnded -> {
+            EndedUI(modifier) {
+                viewModel.startNewMedia()
+            }
+        }
+        PlayerState.PlayerIdle -> {
+            IdleUI(modifier) {
+                viewModel.startNewMedia()
+            }
+        }
+        PlayerState.PlayerReady -> {
+            DisplayPlayer(controller, modifier) {
+                viewModel.startNewMedia()
+            }
         }
     }
-    // Show PlayerView only when the controller is ready
-    when {
-        isControllerLoading -> LoadingIndicator(modifier)
-        else -> DisplayPlayer(controller, modifier, onClick = {
-            viewModel.startNewMedia()
-        })
+}
+
+@Composable
+fun EndedUI(modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(CONTAINER_HEIGHT)
+            .background(Color.DarkGray),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = "Playback Ended", color = Color.White)
+            Button(onClick = onClick, modifier = Modifier.padding(top = 8.dp)) {
+                Text("Play Again")
+            }
+        }
     }
 }
+
+
+@Composable
+fun IdleUI(modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(CONTAINER_HEIGHT)
+            .background(Color.Gray),
+        contentAlignment = Alignment.Center
+    ) {
+        Button(onClick = onClick) {
+            Text("Start Playback")
+        }
+    }
+}
+
+
 
 @Composable
 private fun DisplayPlayer(
@@ -112,25 +147,6 @@ private fun DisplayPlayer(
                     Text("PlayItem")
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun StartServiceInitiatePlay(viewModel: MainActivityViewModel, onControllerLoading: () -> Unit) {
-    onControllerLoading()
-    val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        try {
-            // Step 1: Start service
-            viewModel.startMediaService(context)
-            // Step 2: Initialise media controller
-            viewModel.initializeController()
-            // Step 3: Play video
-            viewModel.playVideo()
-            Log.d(APP_TAG, "Playback started successfully")
-        } catch (e: Exception) {
-            Log.e(APP_TAG, "Error while starting playback", e)
         }
     }
 }

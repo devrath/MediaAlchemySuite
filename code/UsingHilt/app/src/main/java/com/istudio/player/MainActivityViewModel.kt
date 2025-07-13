@@ -1,5 +1,3 @@
-@file:OptIn(SavedStateHandleSaveableApi::class)
-
 package com.istudio.player
 
 import android.content.Context
@@ -9,9 +7,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
+import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -22,12 +19,18 @@ import com.istudio.player.controllers.VideoPlaybackController
 import com.istudio.player.service.PlayerMediaSessionService
 import com.istudio.player.utils.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
     private val sessionController: VideoMediaController,
-    private val playbackController: VideoPlaybackController
+    private val playbackController: VideoPlaybackController,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private var isServiceRunning = false
@@ -35,38 +38,53 @@ class MainActivityViewModel @Inject constructor(
     private val _controllerState = mutableStateOf<MediaController?>(null)
     val controllerState: State<MediaController?> = _controllerState
 
+    private val _playerState: MutableStateFlow<PlayerState> = MutableStateFlow(PlayerState.PlayerIdle)
+    val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
+
+    init {
+        initializePlayer()
+    }
+
     override fun onCleared() {
         pauseVideo()
         stopVideo()
         super.onCleared()
     }
 
-    suspend fun initializeController() {
+    private suspend fun initializeController() {
         val controller = sessionController.initialize()
         controller.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 when (playbackState) {
-                    Player.STATE_BUFFERING -> Log.d(APP_TAG, "Buffering")
-                    Player.STATE_READY -> Log.d(APP_TAG, "Ready to play")
-                    Player.STATE_ENDED -> Log.d(APP_TAG, "Playback ended")
-                    Player.STATE_IDLE -> Log.d(APP_TAG, "Idle state")
+                    Player.STATE_BUFFERING -> {
+                        _playerState.value = PlayerState.PlayerBuffering
+                    }
+                    Player.STATE_READY -> {
+                        _playerState.value = PlayerState.PlayerReady
+                    }
+                    Player.STATE_ENDED -> {
+                        _playerState.value = PlayerState.PlayerEnded
+                    }
+                    Player.STATE_IDLE -> {
+                        _playerState.value = PlayerState.PlayerEnded
+                    }
                 }
             }
-
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 Log.d(APP_TAG, "Is playing: $isPlaying")
             }
         })
         _controllerState.value = controller
+        startNewMedia()
     }
 
-    fun playVideo() = playbackController.play()
+    private fun playVideo() = playbackController.play()
 
     private fun pauseVideo() = playbackController.pause()
 
     private fun stopVideo() = sessionController.release()
 
-    fun startMediaService(context: Context) {
+    private fun startMediaService() {
         if (!isServiceRunning) {
             try {
                 val intent = Intent(context, PlayerMediaSessionService::class.java)
@@ -100,4 +118,27 @@ class MainActivityViewModel @Inject constructor(
             play()
         }
     }
+
+    private fun initializePlayer() {
+        viewModelScope.launch {
+            try {
+                // Step 1: Start service
+                startMediaService()
+                // Step 2: Initialise media controller
+                initializeController()
+                // Step 3: Play video
+                playVideo()
+                Log.d(APP_TAG, "Playback started successfully")
+            } catch (e: Exception) {
+                Log.e(APP_TAG, "Error while starting playback", e)
+            }
+        }
+    }
+}
+
+sealed class PlayerState {
+    data object PlayerBuffering: PlayerState()
+    data object PlayerReady: PlayerState()
+    data object PlayerEnded: PlayerState()
+    data object PlayerIdle: PlayerState()
 }
