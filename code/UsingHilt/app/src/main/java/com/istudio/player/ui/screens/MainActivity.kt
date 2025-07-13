@@ -13,6 +13,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.istudio.player.ui.screens.composables.PlayerLoading
+import com.istudio.player.ui.screens.composables.PlayerEnded
+import com.istudio.player.ui.screens.composables.PlayerIdle
+import com.istudio.player.ui.screens.composables.PlayerSuppressed
+import com.istudio.player.ui.screens.composables.PlayerError
 import com.istudio.player.ui.theme.PlayerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -43,15 +48,15 @@ fun MainScreen(
 
     when(playerState) {
         PlayerState.PlayerBuffering -> {
-            LoadingIndicator(modifier)
+            PlayerLoading(modifier)
         }
         PlayerState.PlayerEnded -> {
-            EndedUI(modifier) {
+            PlayerEnded(modifier) {
                 viewModel.startNewMedia()
             }
         }
         PlayerState.PlayerIdle -> {
-            IdleUI(modifier) {
+            PlayerIdle(modifier) {
                 viewModel.startNewMedia()
             }
         }
@@ -64,13 +69,13 @@ fun MainScreen(
         }
         is PlayerState.PlayerError -> {
             val errorMessage = (playerState as PlayerState.PlayerError).exception.message ?: "Unknown error"
-            ErrorUI(modifier, errorMessage) {
+            PlayerError(modifier, errorMessage) {
                 viewModel.startNewMedia()
             }
         }
         is PlayerState.PlayerSuppressed -> {
             val reason = (playerState as PlayerState.PlayerSuppressed).reason
-            SuppressedUI(modifier, reason) {
+            PlayerSuppressed(modifier, reason) {
                 viewModel.startNewMedia()
             }
         }
