@@ -8,13 +8,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -72,24 +77,42 @@ fun MainScreen(
     // Show PlayerView only when the controller is ready
     when {
         isControllerLoading -> LoadingIndicator(modifier)
-        else -> DisplayPlayer(controller, modifier)
+        else -> DisplayPlayer(controller, modifier, onClick = {
+            viewModel.startNewMedia()
+        })
     }
 }
 
 @Composable
 private fun DisplayPlayer(
     controller: MediaController?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: ()-> Unit
 ) {
     val context = LocalContext.current
     if (controller != null) {
         val playerView = remember(controller) {
             preparePlayerView(context, controller)
         }
-        AndroidView(
-            factory = { playerView },
-            modifier = modifier.fillMaxWidth().height(CONTAINER_HEIGHT)
-        )
+        Column {
+            AndroidView(
+                factory = { playerView },
+                modifier = modifier.fillMaxWidth().height(CONTAINER_HEIGHT)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(onClick = {
+                    onClick.invoke()
+                }) {
+                    Text("PlayItem")
+                }
+            }
+        }
     }
 }
 

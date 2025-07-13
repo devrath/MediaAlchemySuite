@@ -4,20 +4,18 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
+import com.istudio.player.callbacks.PlayerMediaSessionCallback
 import com.istudio.player.di.qualifiers.MainActivityClass
-import com.istudio.player.service.PlayerMediaSessionServiceHandler
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import com.istudio.player.callbacks.PlayerMediaSessionCallback
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -70,10 +68,5 @@ object PlayerModule {
         .setSessionActivity(sessionIntent)
         .setCallback(PlayerMediaSessionCallback(player))
         .build()
-
-    @Provides
-    @Singleton
-    fun provideServiceHandler(exoPlayer: ExoPlayer): PlayerMediaSessionServiceHandler =
-        PlayerMediaSessionServiceHandler(exoPlayer)
 
 }
