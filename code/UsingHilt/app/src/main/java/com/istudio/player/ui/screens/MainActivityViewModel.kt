@@ -3,6 +3,7 @@ package com.istudio.player.ui.screens
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
@@ -13,7 +14,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.HttpDataSource
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.session.MediaController
 import com.istudio.player.application.APP_TAG
 import com.istudio.player.controllers.VideoMediaController
@@ -53,74 +56,10 @@ class MainActivityViewModel @Inject constructor(
         super.onCleared()
     }
 
+    @OptIn(UnstableApi::class)
     private suspend fun initializeController() {
         val controller = sessionController.initialize()
-        controller.addListener(object : Player.Listener {
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                when (playbackState) {
-                    Player.STATE_BUFFERING -> {
-                        _playerState.value = PlayerState.PlayerBuffering
-                    }
-                    Player.STATE_READY -> {
-                        _playerState.value = PlayerState.PlayerReady
-                    }
-                    Player.STATE_ENDED -> {
-                        _playerState.value = PlayerState.PlayerEnded
-                    }
-                    Player.STATE_IDLE -> {
-                        _playerState.value = PlayerState.PlayerEnded
-                    }
-                }
-            }
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                Log.d(APP_TAG, "isPlaying: $isPlaying")
-                val playbackState = controller.playbackState
-                val playWhenReady = controller.playWhenReady
-                val suppressionReason = controller.playbackSuppressionReason
-                val error = controller.playerError
-
-                when {
-                    error != null -> {
-                        Log.e(APP_TAG, "Player error occurred: ${error.message}")
-                        _playerState.value = PlayerState.PlayerError(error)
-                    }
-
-                    suppressionReason != Player.PLAYBACK_SUPPRESSION_REASON_NONE -> {
-                        Log.w(APP_TAG, "Playback suppressed. Reason: $suppressionReason")
-                        _playerState.value = PlayerState.PlayerSuppressed(suppressionReason)
-                    }
-
-                    !playWhenReady -> {
-                        Log.d(APP_TAG, "Player is paused or waiting.")
-                        _playerState.value = PlayerState.PlayerPaused
-                    }
-
-                    isPlaying -> {
-                        Log.d(APP_TAG, "Playback is active.")
-                        _playerState.value = PlayerState.PlayerPlaying
-                    }
-
-                    else -> {
-                        Log.d(APP_TAG, "Unknown playback state fallback.")
-                        _playerState.value = PlayerState.PlayerIdle
-                    }
-                }
-            }
-            override fun onPlayerError(error: PlaybackException) {
-                when (val cause = error.cause) {
-                    is HttpDataSource.HttpDataSourceException -> {
-                        when (cause) {
-                            is HttpDataSource.InvalidResponseCodeException -> {
-                                Log.e(APP_TAG, "HTTP error code: ${cause.responseCode}")
-                            }
-                            else -> Log.e(APP_TAG, "HTTP error: ${cause.message}")
-                        }
-                    }
-                    else -> Log.e(APP_TAG, "Playback error: ${error.message}")
-                }
-                _playerState.value = PlayerState.PlayerError(error)
-            }
-        })
+        controller.addListener(playerListener(controller))
         _controllerState.value = controller
         startNewMedia()
     }
@@ -181,6 +120,88 @@ class MainActivityViewModel @Inject constructor(
             }
         }
     }
+
+    private fun playerListener(controller: MediaController) =
+        object: Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                when (playbackState) {
+                    Player.STATE_BUFFERING -> {
+                        _playerState.value = PlayerState.PlayerBuffering
+                    }
+
+                    Player.STATE_READY -> {
+                        _playerState.value = PlayerState.PlayerReady
+                    }
+
+                    Player.STATE_ENDED -> {
+                        _playerState.value = PlayerState.PlayerEnded
+                    }
+
+                    Player.STATE_IDLE -> {
+                        _playerState.value = PlayerState.PlayerEnded
+                    }
+                }
+            }
+
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                Log.d(APP_TAG, "isPlaying: $isPlaying")
+                val playbackState = controller.playbackState
+                val playWhenReady = controller.playWhenReady
+                val suppressionReason = controller.playbackSuppressionReason
+                val error = controller.playerError
+
+                when {
+                    error != null -> {
+                        Log.e(APP_TAG, "Player error occurred: ${error.message}")
+                        _playerState.value = PlayerState.PlayerError(error)
+                    }
+
+                    suppressionReason != Player.PLAYBACK_SUPPRESSION_REASON_NONE -> {
+                        Log.w(APP_TAG, "Playback suppressed. Reason: $suppressionReason")
+                        _playerState.value = PlayerState.PlayerSuppressed(suppressionReason)
+                    }
+
+                    !playWhenReady -> {
+                        Log.d(APP_TAG, "Player is paused or waiting.")
+                        _playerState.value = PlayerState.PlayerPaused
+                    }
+
+                    isPlaying -> {
+                        Log.d(APP_TAG, "Playback is active.")
+                        _playerState.value = PlayerState.PlayerPlaying
+                    }
+
+                    else -> {
+                        Log.d(APP_TAG, "Unknown playback state fallback.")
+                        _playerState.value = PlayerState.PlayerIdle
+                    }
+                }
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                when (val cause = error.cause) {
+                    is HttpDataSource.HttpDataSourceException -> {
+                        when (cause) {
+                            is HttpDataSource.InvalidResponseCodeException -> {
+                                Log.e(APP_TAG, "HTTP error code: ${cause.responseCode}")
+                            }
+
+                            else -> Log.e(APP_TAG, "HTTP error: ${cause.message}")
+                        }
+                    }
+
+                    else -> Log.e(APP_TAG, "Playback error: ${error.message}")
+                }
+                _playerState.value = PlayerState.PlayerError(error)
+            }
+
+            override fun onEvents(player: Player, events: Player.Events) {
+                if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) {
+                    // We can add other if needed
+                    Log.e(APP_TAG, "OnEvents: EVENT_PLAYBACK_STATE_CHANGED")
+                }
+            }
+        }
 }
 
 sealed class PlayerState {
@@ -189,7 +210,7 @@ sealed class PlayerState {
     data object PlayerEnded: PlayerState()
     data object PlayerIdle: PlayerState()
     data object PlayerPlaying: PlayerState()
-    data object PlayerPaused : PlayerState()
+    data object PlayerPaused: PlayerState()
     data class PlayerError(val exception: PlaybackException) : PlayerState()
     data class PlayerSuppressed(val reason: Int) : PlayerState()
 }
