@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.ui.PlayerView
 import com.istudio.player.ui.theme.PlayerTheme
@@ -74,13 +75,72 @@ fun MainScreen(
                 viewModel.startNewMedia()
             }
         }
-        PlayerState.PlayerReady -> {
+        PlayerState.PlayerReady,
+        PlayerState.PlayerPlaying,
+        PlayerState.PlayerPaused -> {
             DisplayPlayer(controller, modifier) {
+                viewModel.startNewMedia()
+            }
+        }
+        is PlayerState.PlayerError -> {
+            val errorMessage = (playerState as PlayerState.PlayerError).exception.message ?: "Unknown error"
+            ErrorUI(modifier, errorMessage) {
+                viewModel.startNewMedia()
+            }
+        }
+        is PlayerState.PlayerSuppressed -> {
+            val reason = (playerState as PlayerState.PlayerSuppressed).reason
+            SuppressedUI(modifier, reason) {
                 viewModel.startNewMedia()
             }
         }
     }
 }
+
+@Composable
+fun ErrorUI(modifier: Modifier = Modifier, message: String, onRetry: () -> Unit) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(CONTAINER_HEIGHT)
+            .background(Color.Red),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Playback Error", color = Color.White)
+            Text(message, color = Color.White, modifier = Modifier.padding(top = 4.dp))
+            Button(onClick = onRetry, modifier = Modifier.padding(top = 8.dp)) {
+                Text("Retry")
+            }
+        }
+    }
+}
+
+@Composable
+fun SuppressedUI(modifier: Modifier = Modifier, reason: Int, onRetry: () -> Unit) {
+    val reasonText = when (reason) {
+        Player.PLAYBACK_SUPPRESSION_REASON_TRANSIENT_AUDIO_FOCUS_LOSS -> "Audio focus lost temporarily"
+        Player.PLAYBACK_SUPPRESSION_REASON_UNSUITABLE_AUDIO_OUTPUT -> "Unsuitable audio output"
+        else -> "Playback suppressed"
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(CONTAINER_HEIGHT)
+            .background(Color.Yellow),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Suppressed", color = Color.Black)
+            Text(reasonText, color = Color.Black, modifier = Modifier.padding(top = 4.dp))
+            Button(onClick = onRetry, modifier = Modifier.padding(top = 8.dp)) {
+                Text("Retry")
+            }
+        }
+    }
+}
+
 
 @Composable
 fun EndedUI(modifier: Modifier = Modifier, onClick: () -> Unit) {
