@@ -65,76 +65,98 @@ fun MainScreenComposable(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = {
-                    onSeekBack()
-                }) {
-                    Icon(Icons.Default.Replay10, contentDescription = "Rewind 10s")
-                }
-
-                IconButton(onClick = {
+            PlayerControlsRow(
+                isPlaying = isPlaying,
+                onPlayPause = {
                     onPlayPause()
                     isPlaying = !isPlaying
-                }) {
-                    Icon(
-                        if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Play"
-                    )
-                }
-
-                IconButton(onClick = {
-                    onSeekForward()
-                }) {
-                    Icon(Icons.Default.Forward10, contentDescription = "Forward 10s")
-                }
-
-                IconButton(onClick = {
-                    onCaptionsToggle()
-                }) {
-                    Icon(Icons.Default.Subtitles, contentDescription = "Toggle Captions")
-                }
-
-                IconButton(onClick = {
-                    fullScreenClick()
-                }) {
-                    Icon(Icons.Default.Fullscreen, contentDescription = "Fullscreen")
-                }
-
-                IconButton(onClick = {
-                    showSpeedDialog = true
-                }) {
-                    Icon(Icons.Default.Speed, contentDescription = "Playback Speed")
-                }
-            }
+                },
+                onSeekBack = onSeekBack,
+                onSeekForward = onSeekForward,
+                onCaptionsToggle = onCaptionsToggle,
+                onFullScreen = fullScreenClick,
+                onSpeedClick = { showSpeedDialog = true }
+            )
 
             if (showSpeedDialog) {
-                AlertDialog(
-                    onDismissRequest = { showSpeedDialog = false },
-                    title = { Text("Select Playback Speed") },
-                    text = {
-                        Column {
-                            listOf(0.5f, 1.0f, 1.25f, 1.5f, 2.0f).forEach { speed ->
-                                Text(
-                                    text = "${speed}x",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            onSpeedSelected(speed)
-                                            showSpeedDialog = false
-                                        }
-                                        .padding(8.dp)
-                                )
-                            }
-                        }
-                    },
-                    confirmButton = {},
-                    dismissButton = {}
+                PlaybackSpeedDialog(
+                    onDismiss = { showSpeedDialog = false },
+                    onSpeedSelected = onSpeedSelected
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun PlaybackSpeedDialog(
+    onDismiss: () -> Unit,
+    onSpeedSelected: (Float) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Playback Speed") },
+        text = {
+            Column {
+                listOf(0.5f, 1.0f, 1.25f, 1.5f, 2.0f).forEach { speed ->
+                    Text(
+                        text = "${speed}x",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onSpeedSelected(speed)
+                                onDismiss()
+                            }
+                            .padding(8.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {}
+    )
+}
+
+@Composable
+fun PlayerControlsRow(
+    isPlaying: Boolean,
+    onPlayPause: () -> Unit,
+    onSeekBack: () -> Unit,
+    onSeekForward: () -> Unit,
+    onCaptionsToggle: () -> Unit,
+    onFullScreen: () -> Unit,
+    onSpeedClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onSeekBack) {
+            Icon(Icons.Default.Replay10, contentDescription = "Rewind 10s")
+        }
+
+        IconButton(onClick = onPlayPause) {
+            Icon(
+                if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                contentDescription = if (isPlaying) "Pause" else "Play"
+            )
+        }
+
+        IconButton(onClick = onSeekForward) {
+            Icon(Icons.Default.Forward10, contentDescription = "Forward 10s")
+        }
+
+        IconButton(onClick = onCaptionsToggle) {
+            Icon(Icons.Default.Subtitles, contentDescription = "Toggle Captions")
+        }
+
+        IconButton(onClick = onFullScreen) {
+            Icon(Icons.Default.Fullscreen, contentDescription = "Fullscreen")
+        }
+
+        IconButton(onClick = onSpeedClick) {
+            Icon(Icons.Default.Speed, contentDescription = "Playback Speed")
         }
     }
 }
