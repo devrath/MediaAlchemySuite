@@ -73,4 +73,5 @@ dependencies {
     implementation(libs.androidx.media3.session)
     implementation(libs.androidx.media3.compose)
     implementation(libs.kotlinx.coroutines.guava) // Or latest version
+    implementation(libs.androidx.material.icons.extended)
 }
