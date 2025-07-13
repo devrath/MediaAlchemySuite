@@ -24,7 +24,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -33,22 +32,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.common.C
 import androidx.media3.session.MediaController
 import androidx.media3.ui.PlayerView
 
 
 @Composable
-fun DisplayPlayer(
+fun MainScreenComposable(
     controller: MediaController?,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    fullScreenClick: () -> Unit,
+    onPlayPause: () -> Unit,
+    onSeekBack: () -> Unit,
+    onSeekForward: () -> Unit,
+    onCaptionsToggle: () -> Unit,
+    onSpeedSelected: (Float) -> Unit
 ) {
-    val context = LocalContext.current
-    var isPlaying by remember(controller) { mutableStateOf(controller?.isPlaying == true) }
+    var isPlaying by remember { mutableStateOf(controller?.isPlaying == true) }
     var showSpeedDialog by remember { mutableStateOf(false) }
-    var playbackSpeed by remember { mutableFloatStateOf(1.0f) }
-    var captionsEnabled by remember { mutableStateOf(true) }
+    val context = LocalContext.current
 
     if (controller != null) {
         val playerView = remember(controller) {
@@ -70,19 +71,14 @@ fun DisplayPlayer(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = {
-                    controller.seekBack()
+                    onSeekBack()
                 }) {
                     Icon(Icons.Default.Replay10, contentDescription = "Rewind 10s")
                 }
 
                 IconButton(onClick = {
-                    isPlaying = if (controller.isPlaying) {
-                        controller.pause()
-                        false
-                    } else {
-                        controller.play()
-                        true
-                    }
+                    onPlayPause()
+                    isPlaying = !isPlaying
                 }) {
                     Icon(
                         if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -91,25 +87,19 @@ fun DisplayPlayer(
                 }
 
                 IconButton(onClick = {
-                    controller.seekForward()
+                    onSeekForward()
                 }) {
                     Icon(Icons.Default.Forward10, contentDescription = "Forward 10s")
                 }
 
                 IconButton(onClick = {
-                    captionsEnabled = !captionsEnabled
-                    // Toggle captions
-                    controller.trackSelectionParameters = controller.trackSelectionParameters
-                        .buildUpon()
-                        .setPreferredTextLanguage("en")
-                        .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !captionsEnabled)
-                        .build()
+                    onCaptionsToggle()
                 }) {
                     Icon(Icons.Default.Subtitles, contentDescription = "Toggle Captions")
                 }
 
                 IconButton(onClick = {
-                    onClick()
+                    fullScreenClick()
                 }) {
                     Icon(Icons.Default.Fullscreen, contentDescription = "Fullscreen")
                 }
@@ -120,32 +110,31 @@ fun DisplayPlayer(
                     Icon(Icons.Default.Speed, contentDescription = "Playback Speed")
                 }
             }
-        }
 
-        if (showSpeedDialog) {
-            AlertDialog(
-                onDismissRequest = { showSpeedDialog = false },
-                title = { Text("Select Playback Speed") },
-                text = {
-                    Column {
-                        listOf(0.5f, 1.0f, 1.25f, 1.5f, 2.0f).forEach { speed ->
-                            Text(
-                                text = "${speed}x",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        controller.setPlaybackSpeed(speed)
-                                        playbackSpeed = speed
-                                        showSpeedDialog = false
-                                    }
-                                    .padding(8.dp)
-                            )
+            if (showSpeedDialog) {
+                AlertDialog(
+                    onDismissRequest = { showSpeedDialog = false },
+                    title = { Text("Select Playback Speed") },
+                    text = {
+                        Column {
+                            listOf(0.5f, 1.0f, 1.25f, 1.5f, 2.0f).forEach { speed ->
+                                Text(
+                                    text = "${speed}x",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            onSpeedSelected(speed)
+                                            showSpeedDialog = false
+                                        }
+                                        .padding(8.dp)
+                                )
+                            }
                         }
-                    }
-                },
-                confirmButton = {},
-                dismissButton = {}
-            )
+                    },
+                    confirmButton = {},
+                    dismissButton = {}
+                )
+            }
         }
     }
 }

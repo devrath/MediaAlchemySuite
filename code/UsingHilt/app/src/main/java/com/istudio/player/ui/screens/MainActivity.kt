@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.session.MediaController
 import com.istudio.player.ui.screens.composables.PlayerLoading
 import com.istudio.player.ui.screens.composables.PlayerEnded
 import com.istudio.player.ui.screens.composables.PlayerIdle
@@ -30,8 +31,22 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PlayerTheme {
+                val viewModel: MainActivityViewModel = viewModel()
+                val controller by viewModel.controllerState
+                val playerState by viewModel.playerState.collectAsState()
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MainScreen(modifier = Modifier.padding(innerPadding))
+                    MainScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        playerState = playerState,
+                        controller = controller,
+                        onPlayPause = { viewModel.onPlayPauseToggle() },
+                        onSeekBack = { viewModel.onSeekBack() },
+                        onSeekForward = { viewModel.onSeekForward() },
+                        onCaptionsToggle = { viewModel.onToggleCaptions() },
+                        onSpeedSelected = { viewModel.onPlaybackSpeedSelected(it) },
+                        onStartNewMedia = { viewModel.startNewMedia() }
+                    )
                 }
             }
         }
@@ -41,42 +56,53 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    viewModel: MainActivityViewModel = viewModel()
+    playerState: PlayerState,
+    controller: MediaController?,
+    onPlayPause: () -> Unit,
+    onSeekBack: () -> Unit,
+    onSeekForward: () -> Unit,
+    onCaptionsToggle: () -> Unit,
+    onSpeedSelected: (Float) -> Unit,
+    onStartNewMedia: () -> Unit
 ) {
-    val controller by viewModel.controllerState
-    val playerState by viewModel.playerState.collectAsState()
-
-    when(playerState) {
+    when (playerState) {
         PlayerState.PlayerBuffering -> {
             PlayerLoading(modifier)
         }
         PlayerState.PlayerEnded -> {
             PlayerEnded(modifier) {
-                viewModel.startNewMedia()
+                onStartNewMedia()
             }
         }
         PlayerState.PlayerIdle -> {
             PlayerIdle(modifier) {
-                viewModel.startNewMedia()
+                onStartNewMedia()
             }
         }
         PlayerState.PlayerReady,
         PlayerState.PlayerPlaying,
         PlayerState.PlayerPaused -> {
-            DisplayPlayer(controller, modifier) {
-                viewModel.startNewMedia()
-            }
+            MainScreenComposable(
+                controller = controller,
+                modifier = modifier,
+                onPlayPause = onPlayPause,
+                onSeekBack = onSeekBack,
+                onSeekForward = onSeekForward,
+                onCaptionsToggle = onCaptionsToggle,
+                onSpeedSelected = onSpeedSelected,
+                fullScreenClick = {}
+            )
         }
         is PlayerState.PlayerError -> {
-            val errorMessage = (playerState as PlayerState.PlayerError).exception.message ?: "Unknown error"
+            val errorMessage = playerState.exception.message ?: "Unknown error"
             PlayerError(modifier, errorMessage) {
-                viewModel.startNewMedia()
+                onStartNewMedia()
             }
         }
         is PlayerState.PlayerSuppressed -> {
-            val reason = (playerState as PlayerState.PlayerSuppressed).reason
+            val reason = playerState.reason
             PlayerSuppressed(modifier, reason) {
-                viewModel.startNewMedia()
+                onStartNewMedia()
             }
         }
     }

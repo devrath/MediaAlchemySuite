@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
@@ -47,6 +48,8 @@ class MainActivityViewModel @Inject constructor(
     private val _playerState: MutableStateFlow<PlayerState> = MutableStateFlow(PlayerState.PlayerIdle)
     val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
 
+    private var captionsEnabled = false
+
     init {
         initializePlayer()
     }
@@ -55,6 +58,35 @@ class MainActivityViewModel @Inject constructor(
         pauseVideo()
         stopVideo()
         super.onCleared()
+    }
+
+    fun onPlayPauseToggle() {
+        _controllerState.value?.let { controller ->
+            if (controller.isPlaying) controller.pause() else controller.play()
+        }
+    }
+
+    fun onSeekBack() {
+        _controllerState.value?.seekBack()
+    }
+
+    fun onSeekForward() {
+        _controllerState.value?.seekForward()
+    }
+
+    fun onToggleCaptions() {
+        _controllerState.value?.let { controller ->
+            captionsEnabled = !captionsEnabled
+            controller.trackSelectionParameters = controller.trackSelectionParameters
+                .buildUpon()
+                .setPreferredTextLanguage("en")
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !captionsEnabled)
+                .build()
+        }
+    }
+
+    fun onPlaybackSpeedSelected(speed: Float) {
+        _controllerState.value?.setPlaybackSpeed(speed)
     }
 
     @OptIn(UnstableApi::class)
