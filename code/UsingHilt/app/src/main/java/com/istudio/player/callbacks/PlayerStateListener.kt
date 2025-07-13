@@ -46,11 +46,6 @@ class PlayerStateListener(
                 Log.d(APP_TAG, "Playback is active.")
                 onPlayerStateChanged(PlayerState.PlayerPlaying)
             }
-
-            else -> {
-                Log.d(APP_TAG, "Unknown playback state fallback.")
-                onPlayerStateChanged(PlayerState.PlayerBuffering)
-            }
         }
     }
 
