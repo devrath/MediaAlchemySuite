@@ -41,6 +41,15 @@ object Constants {
     /** Tears of Steel — open movie in adaptive HLS format — ideal for long-form playback testing */
     const val TEARS_OF_STEEL_HLS = "https://bitdash-a.akamaihd.net/content/tears_of_steel/playlist.m3u8"
 
+    /** Multi-audio (English, Spanish) & Multi-subtitles (EN, ES, FR) stream from Bitmovin */
+    const val MULTI_LANG_AUDIO_SUBS = "https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8"
+
+    /** DASH + HLS with multilingual subtitles (useful if DASH extension added later) */
+    const val MULTI_SUBTITLES_TEST = "https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8"
+
+    /** Alternative: Stream with multiple caption formats (CEA-608, WebVTT) */
+    const val CEA608_WEBVTT_STREAM = "https://test-streams.mux.dev/playlist.m3u8"
+
     // ──────────────────────────────
     // MP4 Sample Streams
     // ──────────────────────────────
@@ -83,7 +92,9 @@ object Constants {
         CBC_LIVE,
         NASA_LIVE,
         NBC_LIVE,
-        TEARS_OF_STEEL_HLS
+        TEARS_OF_STEEL_HLS,
+        MULTI_LANG_AUDIO_SUBS,
+        MULTI_SUBTITLES_TEST
     )
 
     /**

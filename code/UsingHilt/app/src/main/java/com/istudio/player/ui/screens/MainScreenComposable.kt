@@ -43,6 +43,7 @@ import android.text.Layout
 import android.util.TypedValue
 import android.view.View
 import androidx.media3.ui.SubtitleView
+import com.istudio.player.ui.screens.composables.SubtitleSelectionDialog
 
 
 @Composable
@@ -54,10 +55,13 @@ fun MainScreenComposable(
     onSeekBack: () -> Unit,
     onSeekForward: () -> Unit,
     onCaptionsToggle: () -> Unit,
-    onSpeedSelected: (Float) -> Unit
+    onSpeedSelected: (Float) -> Unit,
+    availableSubtitles: List<String>,
+    onSubtitleSelected: (String) -> Unit
 ) {
     var isPlaying by remember { mutableStateOf(controller?.isPlaying == true) }
     var showSpeedDialog by remember { mutableStateOf(false) }
+    var showSubtitleDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     if (controller != null) {
@@ -84,13 +88,25 @@ fun MainScreenComposable(
                 onSeekForward = onSeekForward,
                 onCaptionsToggle = onCaptionsToggle,
                 onFullScreen = fullScreenClick,
-                onSpeedClick = { showSpeedDialog = true }
+                onSpeedClick = { showSpeedDialog = true },
+                onSubtitleClick = { showSubtitleDialog = true }
             )
 
             if (showSpeedDialog) {
                 PlaybackSpeedDialog(
                     onDismiss = { showSpeedDialog = false },
                     onSpeedSelected = onSpeedSelected
+                )
+            }
+
+            if (showSubtitleDialog) {
+                SubtitleSelectionDialog(
+                    availableLanguages = availableSubtitles,
+                    onLanguageSelected = {
+                        onSubtitleSelected(it)
+                        showSubtitleDialog = false
+                    },
+                    onDismiss = { showSubtitleDialog = false }
                 )
             }
         }
@@ -134,7 +150,8 @@ fun PlayerControlsRow(
     onSeekForward: () -> Unit,
     onCaptionsToggle: () -> Unit,
     onFullScreen: () -> Unit,
-    onSpeedClick: () -> Unit
+    onSpeedClick: () -> Unit,
+    onSubtitleClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -166,6 +183,10 @@ fun PlayerControlsRow(
 
         IconButton(onClick = onSpeedClick) {
             Icon(Icons.Default.Speed, contentDescription = "Playback Speed")
+        }
+
+        IconButton(onClick = onSubtitleClick) {
+            Icon(Icons.Default.Subtitles, contentDescription = "Subtitle Language")
         }
     }
 }

@@ -34,6 +34,7 @@ class MainActivity : ComponentActivity() {
                 val viewModel: MainActivityViewModel = viewModel()
                 val controller by viewModel.controllerState
                 val playerState by viewModel.playerState.collectAsState()
+                val subtitleLanguages by viewModel.subtitleLanguages.collectAsState()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainScreen(
@@ -45,7 +46,9 @@ class MainActivity : ComponentActivity() {
                         onSeekForward = { viewModel.onSeekForward() },
                         onCaptionsToggle = { viewModel.onToggleCaptions() },
                         onSpeedSelected = { viewModel.onPlaybackSpeedSelected(it) },
-                        onStartNewMedia = { viewModel.startNewMedia() }
+                        onStartNewMedia = { viewModel.startNewMedia() },
+                        availableSubtitles = subtitleLanguages,
+                        onSubtitleSelected = { viewModel.onSubtitleLanguageSelected(it) }
                     )
                 }
             }
@@ -63,7 +66,9 @@ fun MainScreen(
     onSeekForward: () -> Unit,
     onCaptionsToggle: () -> Unit,
     onSpeedSelected: (Float) -> Unit,
-    onStartNewMedia: () -> Unit
+    onStartNewMedia: () -> Unit,
+    availableSubtitles: List<String>,
+    onSubtitleSelected: (String) -> Unit
 ) {
     when (playerState) {
         PlayerState.PlayerBuffering -> {
@@ -90,7 +95,9 @@ fun MainScreen(
                 onSeekForward = onSeekForward,
                 onCaptionsToggle = onCaptionsToggle,
                 onSpeedSelected = onSpeedSelected,
-                fullScreenClick = {}
+                fullScreenClick = {},
+                availableSubtitles = availableSubtitles,
+                onSubtitleSelected = onSubtitleSelected
             )
         }
         is PlayerState.PlayerError -> {

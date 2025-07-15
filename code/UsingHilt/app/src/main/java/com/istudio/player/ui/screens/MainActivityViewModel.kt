@@ -49,6 +49,10 @@ class MainActivityViewModel @Inject constructor(
     private val _playerState: MutableStateFlow<PlayerState> = MutableStateFlow(PlayerState.PlayerIdle)
     val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
 
+    private val _subtitleLanguages = MutableStateFlow<List<String>>(emptyList())
+    val subtitleLanguages: StateFlow<List<String>> = _subtitleLanguages.asStateFlow()
+
+
     private var captionsEnabled = false
 
     init {
@@ -98,6 +102,9 @@ class MainActivityViewModel @Inject constructor(
         controller.addListener(
             PlayerStateListener(controller) { state ->
                 _playerState.value = state
+                if (state is PlayerState.PlayerReady) {
+                    _subtitleLanguages.value = listAvailableSubtitleLanguages()
+                }
             }
         )
         _controllerState.value = controller
@@ -126,7 +133,7 @@ class MainActivityViewModel @Inject constructor(
     @OptIn(UnstableApi::class)
     fun startNewMedia() {
         try {
-            val videoUrl = Constants.APPLE_BIPBOP
+            val videoUrl = Constants.MULTI_LANG_AUDIO_SUBS
             val artworkUrl = Constants.ART_WORK_URL
             val title = "Title-1"
             val artist = "Artist-1"
@@ -171,6 +178,31 @@ class MainActivityViewModel @Inject constructor(
             }
         }
     }
+
+    fun onSubtitleLanguageSelected(language: String) {
+        _controllerState.value?.let { controller ->
+            captionsEnabled = true
+            controller.trackSelectionParameters = controller.trackSelectionParameters
+                .buildUpon()
+                .setPreferredTextLanguage(language)
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                .build()
+        }
+    }
+
+    @OptIn(UnstableApi::class)
+    fun listAvailableSubtitleLanguages(): List<String> {
+        val controller = _controllerState.value ?: return emptyList()
+        return controller.currentTracks.groups
+            .filter { it.type == C.TRACK_TYPE_TEXT }
+            .flatMap { group ->
+                (0 until group.length)
+                    .mapNotNull { index ->
+                        group.getTrackFormat(index).language
+                    }
+            }.distinct()
+    }
+
 }
 
 sealed class PlayerState {
