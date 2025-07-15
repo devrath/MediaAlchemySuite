@@ -77,10 +77,12 @@ class MainActivityViewModel @Inject constructor(
 
     fun onToggleCaptions() {
         _controllerState.value?.let { controller ->
+            // Toggle the captions availability on/off
             captionsEnabled = !captionsEnabled
+            val language = "en"
             controller.trackSelectionParameters = controller.trackSelectionParameters
                 .buildUpon()
-                .setPreferredTextLanguage("en")
+                .setPreferredTextLanguage(language)
                 .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !captionsEnabled)
                 .build()
         }
