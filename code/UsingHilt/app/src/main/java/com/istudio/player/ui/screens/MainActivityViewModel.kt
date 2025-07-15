@@ -124,7 +124,7 @@ class MainActivityViewModel @Inject constructor(
     @OptIn(UnstableApi::class)
     fun startNewMedia() {
         try {
-            val videoUrl = Constants.VIDEO_URL
+            val videoUrl = Constants.APPLE_BIPBOP
             val artworkUrl = Constants.ART_WORK_URL
             val title = "Title-1"
             val artist = "Artist-1"
