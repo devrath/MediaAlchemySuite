@@ -1,7 +1,9 @@
 package com.istudio.player.ui.screens
 
 import android.content.Context
+import android.graphics.Typeface
 import android.view.ViewGroup
+import androidx.annotation.OptIn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,8 +34,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
+import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
+import android.graphics.Color
+import android.text.Layout
+import android.util.TypedValue
+import android.view.View
+import androidx.media3.ui.SubtitleView
 
 
 @Composable
@@ -161,6 +170,7 @@ fun PlayerControlsRow(
     }
 }
 
+@OptIn(UnstableApi::class)
 private fun preparePlayerView(
     context: Context,
     controller: MediaController?
@@ -171,5 +181,22 @@ private fun preparePlayerView(
         ViewGroup.LayoutParams.WRAP_CONTENT
     )
     useController = true
+    subtitleView?.apply {
+        setStyle(
+            CaptionStyleCompat(
+                Color.WHITE,
+                Color.BLACK,
+                Color.TRANSPARENT,
+                CaptionStyleCompat.EDGE_TYPE_OUTLINE,
+                Color.BLACK,
+                Typeface.DEFAULT_BOLD
+            )
+        )
+        setFractionalTextSize(0.06f)
+        setFixedTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+        setBottomPaddingFraction(0.1f)
+        subtitleView?.visibility = View.VISIBLE
+        textAlignment = View.TEXT_ALIGNMENT_INHERIT
+    }
 }
 
