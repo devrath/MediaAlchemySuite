@@ -123,30 +123,34 @@ class MainActivityViewModel @Inject constructor(
 
     @OptIn(UnstableApi::class)
     fun startNewMedia() {
-        val videoUrl = Constants.VIDEO_URL
-        val artworkUrl = Constants.ART_WORK_URL
-        val title = "Title-1"
-        val artist = "Artist-1"
+        try {
+            val videoUrl = Constants.VIDEO_URL
+            val artworkUrl = Constants.ART_WORK_URL
+            val title = "Title-1"
+            val artist = "Artist-1"
 
-        val mimeType = when {
-            videoUrl.endsWith(".m3u8", ignoreCase = true) -> MimeTypes.APPLICATION_M3U8
-            videoUrl.endsWith(".mp4", ignoreCase = true) -> MimeTypes.VIDEO_MP4
-            else -> MimeTypes.VIDEO_UNKNOWN // fallback
-        }
+            val mimeType = when {
+                videoUrl.endsWith(".m3u8", ignoreCase = true) -> MimeTypes.APPLICATION_M3U8
+                videoUrl.endsWith(".mp4", ignoreCase = true) -> MimeTypes.VIDEO_MP4
+                else -> MimeTypes.VIDEO_UNKNOWN // fallback
+            }
 
-        val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(mimeType)
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(title)
-                    .setArtworkUri(artworkUrl.toUri())
-                    .setArtist(artist).build()
-            )
-            .build()
+            val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(mimeType)
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(title)
+                        .setArtworkUri(artworkUrl.toUri())
+                        .setArtist(artist).build()
+                )
+                .build()
 
-        controllerState.value?.apply {
-            setMediaItem(mediaItem)
-            prepare()
-            play()
+            controllerState.value?.apply {
+                setMediaItem(mediaItem)
+                prepare()
+                play()
+            }
+        }catch (ex: Exception){
+            ex.printStackTrace()
         }
     }
 
