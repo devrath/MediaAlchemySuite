@@ -42,6 +42,7 @@ import android.graphics.Color
 import android.text.Layout
 import android.util.TypedValue
 import android.view.View
+import androidx.compose.material.icons.filled.ClosedCaption
 import androidx.media3.ui.SubtitleView
 import com.istudio.player.ui.screens.composables.SubtitleSelectionDialog
 
@@ -173,16 +174,16 @@ fun PlayerControlsRow(
             Icon(Icons.Default.Forward10, contentDescription = "Forward 10s")
         }
 
-        IconButton(onClick = onCaptionsToggle) {
-            Icon(Icons.Default.Subtitles, contentDescription = "Toggle Captions")
-        }
-
         IconButton(onClick = onFullScreen) {
             Icon(Icons.Default.Fullscreen, contentDescription = "Fullscreen")
         }
 
         IconButton(onClick = onSpeedClick) {
             Icon(Icons.Default.Speed, contentDescription = "Playback Speed")
+        }
+
+        IconButton(onClick = onCaptionsToggle) {
+            Icon(Icons.Default.ClosedCaption, contentDescription = "Toggle Captions")
         }
 
         IconButton(onClick = onSubtitleClick) {
