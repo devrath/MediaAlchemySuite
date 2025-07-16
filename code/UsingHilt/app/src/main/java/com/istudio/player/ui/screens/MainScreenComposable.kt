@@ -1,8 +1,12 @@
 package com.istudio.player.ui.screens
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
-import android.view.ViewGroup
+import android.util.TypedValue
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.FrameLayout
 import androidx.annotation.OptIn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,8 +17,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ClosedCaption
 import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay10
@@ -38,17 +44,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
-import android.graphics.Color
-import android.text.Layout
-import android.util.TypedValue
-import android.view.LayoutInflater
-import android.view.View
-import android.widget.FrameLayout
-import androidx.compose.material.icons.filled.ClosedCaption
-import androidx.compose.material.icons.filled.Language
-import androidx.media3.ui.SubtitleView
 import com.istudio.player.R
-import com.istudio.player.ui.screens.composables.SubtitleSelectionDialog
+import com.istudio.player.ui.screens.composables.SelectionBottomSheetDialog
 
 
 @Composable
@@ -102,16 +99,23 @@ fun MainScreenComposable(
             )
 
             if (showSpeedDialog) {
-                PlaybackSpeedDialog(
-                    onDismiss = { showSpeedDialog = false },
-                    onSpeedSelected = onSpeedSelected
+                SelectionBottomSheetDialog(
+                    title = "Select Playback Speed",
+                    options = listOf(0.5f, 1.0f, 1.25f, 1.5f, 2.0f),
+                    optionToText = { "${it}x" },
+                    onOptionSelected = {
+                        onSpeedSelected(it)
+                        showSpeedDialog = false
+                    },
+                    onDismiss = { showSpeedDialog = false }
                 )
             }
 
             if (showSubtitleDialog) {
-                SubtitleSelectionDialog(
-                    availableLanguages = availableSubtitles,
-                    onLanguageSelected = {
+                SelectionBottomSheetDialog(
+                    title = "Select Subtitle Language",
+                    options = availableSubtitles,
+                    onOptionSelected = {
                         onSubtitleSelected(it)
                         showSubtitleDialog = false
                     },
@@ -120,9 +124,10 @@ fun MainScreenComposable(
             }
 
             if (showAudioDialog) {
-                AudioSelectionDialog(
-                    availableLanguages = availableAudioLanguages,
-                    onLanguageSelected = {
+                SelectionBottomSheetDialog(
+                    title = "Select Audio Language",
+                    options = availableAudioLanguages,
+                    onOptionSelected = {
                         onAudioSelected(it)
                         showAudioDialog = false
                     },
@@ -131,65 +136,6 @@ fun MainScreenComposable(
             }
         }
     }
-}
-
-@Composable
-fun AudioSelectionDialog(
-    availableLanguages: List<String>,
-    onLanguageSelected: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Select Audio Language") },
-        text = {
-            Column {
-                availableLanguages.forEach { lang ->
-                    Text(
-                        text = lang,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onLanguageSelected(lang)
-                                onDismiss()
-                            }
-                            .padding(8.dp)
-                    )
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {}
-    )
-}
-
-@Composable
-fun PlaybackSpeedDialog(
-    onDismiss: () -> Unit,
-    onSpeedSelected: (Float) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Select Playback Speed") },
-        text = {
-            Column {
-                listOf(0.5f, 1.0f, 1.25f, 1.5f, 2.0f).forEach { speed ->
-                    Text(
-                        text = "${speed}x",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onSpeedSelected(speed)
-                                onDismiss()
-                            }
-                            .padding(8.dp)
-                    )
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {}
-    )
 }
 
 @Composable

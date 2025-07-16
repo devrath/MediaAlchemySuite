@@ -17,9 +17,11 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubtitleSelectionDialog(
-    availableLanguages: List<String>,
-    onLanguageSelected: (String) -> Unit,
+fun <T> SelectionBottomSheetDialog(
+    title: String,
+    options: List<T>,
+    optionToText: (T) -> String = { it.toString() },
+    onOptionSelected: (T) -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
@@ -29,14 +31,17 @@ fun SubtitleSelectionDialog(
         sheetState = sheetState
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Select Subtitle Language", style = MaterialTheme.typography.titleLarge)
+            Text(title, style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(16.dp))
-            availableLanguages.forEach { language ->
+            options.forEach { option ->
                 Text(
-                    text = language,
+                    text = optionToText(option),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onLanguageSelected(language) }
+                        .clickable {
+                            onOptionSelected(option)
+                            onDismiss()
+                        }
                         .padding(vertical = 12.dp)
                 )
             }
