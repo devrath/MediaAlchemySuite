@@ -167,7 +167,7 @@ class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Step 1: Start service
-                startMediaService()
+                //startMediaService()
                 // Step 2: Initialise media controller
                 initializeController()
                 // Step 3: Play video

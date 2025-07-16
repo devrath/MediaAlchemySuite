@@ -41,9 +41,12 @@ import androidx.media3.ui.PlayerView
 import android.graphics.Color
 import android.text.Layout
 import android.util.TypedValue
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.FrameLayout
 import androidx.compose.material.icons.filled.ClosedCaption
 import androidx.media3.ui.SubtitleView
+import com.istudio.player.R
 import com.istudio.player.ui.screens.composables.SubtitleSelectionDialog
 
 
@@ -197,13 +200,17 @@ private fun preparePlayerView(
     context: Context,
     controller: MediaController?
 ): PlayerView = PlayerView(context).apply {
-    player = controller
-    layoutParams = ViewGroup.LayoutParams(
-        ViewGroup.LayoutParams.MATCH_PARENT,
-        ViewGroup.LayoutParams.WRAP_CONTENT
-    )
-    useController = true
-    subtitleView?.apply {
+    val dummyParent = FrameLayout(context)
+    val playerView = LayoutInflater.from(context).inflate(
+        R.layout.player_view_layout,
+        dummyParent,
+        false
+    ) as PlayerView
+
+    playerView.player = controller
+    playerView.useController = true
+
+    playerView.subtitleView?.apply {
         setStyle(
             CaptionStyleCompat(
                 Color.WHITE,
@@ -220,5 +227,7 @@ private fun preparePlayerView(
         subtitleView?.visibility = View.VISIBLE
         textAlignment = View.TEXT_ALIGNMENT_INHERIT
     }
+
+    return playerView
 }
 
