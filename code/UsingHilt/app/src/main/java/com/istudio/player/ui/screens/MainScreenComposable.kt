@@ -61,12 +61,15 @@ fun MainScreenComposable(
     availableSubtitles: List<String>,
     onSubtitleSelected: (String) -> Unit,
     availableAudioLanguages: List<String>,
-    onAudioSelected: (String) -> Unit
+    onAudioSelected: (String) -> Unit,
+    isPlaying: Boolean,
+    showSpeedDialog: Boolean,
+    showSubtitleDialog: Boolean,
+    showAudioDialog: Boolean,
+    onShowSpeedDialog: (Boolean) -> Unit,
+    onShowSubtitleDialog: (Boolean) -> Unit,
+    onShowAudioDialog: (Boolean) -> Unit
 ) {
-    var isPlaying by remember { mutableStateOf(controller?.isPlaying == true) }
-    var showSpeedDialog by remember { mutableStateOf(false) }
-    var showSubtitleDialog by remember { mutableStateOf(false) }
-    var showAudioDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     if (controller != null) {
@@ -85,17 +88,14 @@ fun MainScreenComposable(
 
             PlayerControlsRow(
                 isPlaying = isPlaying,
-                onPlayPause = {
-                    onPlayPause()
-                    isPlaying = !isPlaying
-                },
+                onPlayPause = onPlayPause,
                 onSeekBack = onSeekBack,
                 onSeekForward = onSeekForward,
                 onCaptionsToggle = onCaptionsToggle,
                 onFullScreen = fullScreenClick,
-                onSpeedClick = { showSpeedDialog = true },
-                onSubtitleClick = { showSubtitleDialog = true },
-                onAudioClick = { showAudioDialog = true }
+                onSpeedClick = { onShowSpeedDialog(true) },
+                onSubtitleClick = { onShowSubtitleDialog(true) },
+                onAudioClick = { onShowAudioDialog(true) }
             )
 
             if (showSpeedDialog) {
@@ -105,9 +105,9 @@ fun MainScreenComposable(
                     optionToText = { "${it}x" },
                     onOptionSelected = {
                         onSpeedSelected(it)
-                        showSpeedDialog = false
+                        onShowSpeedDialog(false)
                     },
-                    onDismiss = { showSpeedDialog = false }
+                    onDismiss = { onShowSpeedDialog(false) }
                 )
             }
 
@@ -117,9 +117,9 @@ fun MainScreenComposable(
                     options = availableSubtitles,
                     onOptionSelected = {
                         onSubtitleSelected(it)
-                        showSubtitleDialog = false
+                        onShowSubtitleDialog(false)
                     },
-                    onDismiss = { showSubtitleDialog = false }
+                    onDismiss = { onShowSubtitleDialog(false) }
                 )
             }
 
@@ -129,14 +129,15 @@ fun MainScreenComposable(
                     options = availableAudioLanguages,
                     onOptionSelected = {
                         onAudioSelected(it)
-                        showAudioDialog = false
+                        onShowAudioDialog(false)
                     },
-                    onDismiss = { showAudioDialog = false }
+                    onDismiss = { onShowAudioDialog(false) }
                 )
             }
         }
     }
 }
+
 
 @Composable
 fun PlayerControlsRow(

@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.media3.session.MediaController
 import com.istudio.player.ui.screens.composables.PlayerLoading
 import com.istudio.player.ui.screens.composables.PlayerEnded
 import com.istudio.player.ui.screens.composables.PlayerIdle
@@ -49,7 +48,10 @@ class MainActivity : ComponentActivity() {
                         onSpeedSelected = viewModel::onPlaybackSpeedSelected,
                         onStartNewMedia = viewModel::startNewMedia,
                         onSubtitleSelected = viewModel::onSubtitleLanguageSelected,
-                        onAudioSelected = viewModel::onAudioLanguageSelected
+                        onAudioSelected = viewModel::onAudioLanguageSelected,
+                        onShowSpeedDialog = viewModel::showSpeedDialog,
+                        onShowSubtitleDialog = viewModel::showSubtitleDialog,
+                        onShowAudioDialog = viewModel::showAudioDialog
                     )
                 }
             }
@@ -68,7 +70,10 @@ fun MainScreen(
     onSpeedSelected: (Float) -> Unit,
     onStartNewMedia: () -> Unit,
     onSubtitleSelected: (String) -> Unit,
-    onAudioSelected: (String) -> Unit
+    onAudioSelected: (String) -> Unit,
+    onShowSpeedDialog: (Boolean) -> Unit,
+    onShowSubtitleDialog: (Boolean) -> Unit,
+    onShowAudioDialog: (Boolean) -> Unit
 ) {
     when (val playerState = uiState.playerState) {
         PlayerState.PlayerBuffering -> {
@@ -109,7 +114,14 @@ fun MainScreen(
                 availableSubtitles = uiState.subtitleLanguages,
                 onSubtitleSelected = onSubtitleSelected,
                 availableAudioLanguages = uiState.audioLanguages,
-                onAudioSelected = onAudioSelected
+                onAudioSelected = onAudioSelected,
+                isPlaying = uiState.isPlaying,
+                showSpeedDialog = uiState.showSpeedDialog,
+                showSubtitleDialog = uiState.showSubtitleDialog,
+                showAudioDialog = uiState.showAudioDialog,
+                onShowSpeedDialog = onShowSpeedDialog,
+                onShowSubtitleDialog = onShowSubtitleDialog,
+                onShowAudioDialog = onShowAudioDialog
             )
         }
 

@@ -57,8 +57,26 @@ class MainActivityViewModel @Inject constructor(
 
     fun onPlayPauseToggle() {
         _uiState.value.controller?.let {
-            if (it.isPlaying) it.pause() else it.play()
+            if (it.isPlaying) {
+                it.pause()
+                _uiState.update { state -> state.copy(isPlaying = false) }
+            } else {
+                it.play()
+                _uiState.update { state -> state.copy(isPlaying = true) }
+            }
         }
+    }
+
+    fun showSpeedDialog(show: Boolean) {
+        _uiState.update { it.copy(showSpeedDialog = show) }
+    }
+
+    fun showSubtitleDialog(show: Boolean) {
+        _uiState.update { it.copy(showSubtitleDialog = show) }
+    }
+
+    fun showAudioDialog(show: Boolean) {
+        _uiState.update { it.copy(showAudioDialog = show) }
     }
 
     fun onSeekBack() {
@@ -95,7 +113,8 @@ class MainActivityViewModel @Inject constructor(
                     it.copy(
                         playerState = state,
                         subtitleLanguages = if (state is PlayerState.PlayerReady) listAvailableSubtitleLanguages() else it.subtitleLanguages,
-                        audioLanguages = if (state is PlayerState.PlayerReady) listAvailableAudioLanguages() else it.audioLanguages
+                        audioLanguages = if (state is PlayerState.PlayerReady) listAvailableAudioLanguages() else it.audioLanguages,
+                        isPlaying = controller.isPlaying
                     )
                 }
             }
@@ -235,5 +254,9 @@ data class PlayerUiState(
     val subtitleLanguages: List<String> = emptyList(),
     val audioLanguages: List<String> = emptyList(),
     val isServiceRunning: Boolean = false,
-    val captionsEnabled: Boolean = false
+    val captionsEnabled: Boolean = false,
+    val isPlaying: Boolean = false,
+    val showSpeedDialog: Boolean = false,
+    val showSubtitleDialog: Boolean = false,
+    val showAudioDialog: Boolean = false
 )
