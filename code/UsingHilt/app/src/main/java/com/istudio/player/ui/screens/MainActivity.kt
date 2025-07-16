@@ -110,7 +110,6 @@ fun MainScreen(
                 onSeekForward = onSeekForward,
                 onCaptionsToggle = onCaptionsToggle,
                 onSpeedSelected = onSpeedSelected,
-                fullScreenClick = {},
                 availableSubtitles = uiState.subtitleLanguages,
                 onSubtitleSelected = onSubtitleSelected,
                 availableAudioLanguages = uiState.audioLanguages,

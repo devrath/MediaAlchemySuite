@@ -52,7 +52,6 @@ import com.istudio.player.ui.screens.composables.SelectionBottomSheetDialog
 fun MainScreenComposable(
     controller: MediaController?,
     modifier: Modifier = Modifier,
-    fullScreenClick: () -> Unit,
     onPlayPause: () -> Unit,
     onSeekBack: () -> Unit,
     onSeekForward: () -> Unit,
@@ -92,7 +91,6 @@ fun MainScreenComposable(
                 onSeekBack = onSeekBack,
                 onSeekForward = onSeekForward,
                 onCaptionsToggle = onCaptionsToggle,
-                onFullScreen = fullScreenClick,
                 onSpeedClick = { onShowSpeedDialog(true) },
                 onSubtitleClick = { onShowSubtitleDialog(true) },
                 onAudioClick = { onShowAudioDialog(true) }
@@ -146,7 +144,6 @@ fun PlayerControlsRow(
     onSeekBack: () -> Unit,
     onSeekForward: () -> Unit,
     onCaptionsToggle: () -> Unit,
-    onFullScreen: () -> Unit,
     onSpeedClick: () -> Unit,
     onSubtitleClick: () -> Unit,
     onAudioClick: () -> Unit
@@ -169,10 +166,6 @@ fun PlayerControlsRow(
 
         IconButton(onClick = onSeekForward) {
             Icon(Icons.Default.Forward10, contentDescription = "Forward 10s")
-        }
-
-        IconButton(onClick = onFullScreen) {
-            Icon(Icons.Default.Fullscreen, contentDescription = "Fullscreen")
         }
 
         IconButton(onClick = onSpeedClick) {
