@@ -45,6 +45,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import androidx.compose.material.icons.filled.ClosedCaption
+import androidx.compose.material.icons.filled.Language
 import androidx.media3.ui.SubtitleView
 import com.istudio.player.R
 import com.istudio.player.ui.screens.composables.SubtitleSelectionDialog
@@ -61,11 +62,14 @@ fun MainScreenComposable(
     onCaptionsToggle: () -> Unit,
     onSpeedSelected: (Float) -> Unit,
     availableSubtitles: List<String>,
-    onSubtitleSelected: (String) -> Unit
+    onSubtitleSelected: (String) -> Unit,
+    availableAudioLanguages: List<String>,
+    onAudioSelected: (String) -> Unit
 ) {
     var isPlaying by remember { mutableStateOf(controller?.isPlaying == true) }
     var showSpeedDialog by remember { mutableStateOf(false) }
     var showSubtitleDialog by remember { mutableStateOf(false) }
+    var showAudioDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     if (controller != null) {
@@ -93,7 +97,8 @@ fun MainScreenComposable(
                 onCaptionsToggle = onCaptionsToggle,
                 onFullScreen = fullScreenClick,
                 onSpeedClick = { showSpeedDialog = true },
-                onSubtitleClick = { showSubtitleDialog = true }
+                onSubtitleClick = { showSubtitleDialog = true },
+                onAudioClick = { showAudioDialog = true }
             )
 
             if (showSpeedDialog) {
@@ -113,8 +118,49 @@ fun MainScreenComposable(
                     onDismiss = { showSubtitleDialog = false }
                 )
             }
+
+            if (showAudioDialog) {
+                AudioSelectionDialog(
+                    availableLanguages = availableAudioLanguages,
+                    onLanguageSelected = {
+                        onAudioSelected(it)
+                        showAudioDialog = false
+                    },
+                    onDismiss = { showAudioDialog = false }
+                )
+            }
         }
     }
+}
+
+@Composable
+fun AudioSelectionDialog(
+    availableLanguages: List<String>,
+    onLanguageSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Audio Language") },
+        text = {
+            Column {
+                availableLanguages.forEach { lang ->
+                    Text(
+                        text = lang,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onLanguageSelected(lang)
+                                onDismiss()
+                            }
+                            .padding(8.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {}
+    )
 }
 
 @Composable
@@ -155,7 +201,8 @@ fun PlayerControlsRow(
     onCaptionsToggle: () -> Unit,
     onFullScreen: () -> Unit,
     onSpeedClick: () -> Unit,
-    onSubtitleClick: () -> Unit
+    onSubtitleClick: () -> Unit,
+    onAudioClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -191,6 +238,10 @@ fun PlayerControlsRow(
 
         IconButton(onClick = onSubtitleClick) {
             Icon(Icons.Default.Subtitles, contentDescription = "Subtitle Language")
+        }
+
+        IconButton(onClick = onAudioClick) {
+            Icon(Icons.Default.Language, contentDescription = "Audio Language")
         }
     }
 }

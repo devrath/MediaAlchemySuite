@@ -52,6 +52,8 @@ class MainActivityViewModel @Inject constructor(
     private val _subtitleLanguages = MutableStateFlow<List<String>>(emptyList())
     val subtitleLanguages: StateFlow<List<String>> = _subtitleLanguages.asStateFlow()
 
+    private val _audioLanguages = MutableStateFlow<List<String>>(emptyList())
+    val audioLanguages: StateFlow<List<String>> = _audioLanguages.asStateFlow()
 
     private var captionsEnabled = false
 
@@ -104,6 +106,7 @@ class MainActivityViewModel @Inject constructor(
                 _playerState.value = state
                 if (state is PlayerState.PlayerReady) {
                     _subtitleLanguages.value = listAvailableSubtitleLanguages()
+                    _audioLanguages.value = listAvailableAudioLanguages()
                 }
             }
         )
@@ -202,6 +205,29 @@ class MainActivityViewModel @Inject constructor(
                     }
             }.distinct()
     }
+
+    @OptIn(UnstableApi::class)
+    fun listAvailableAudioLanguages(): List<String> {
+        val controller = _controllerState.value ?: return emptyList()
+        return controller.currentTracks.groups
+            .filter { it.type == C.TRACK_TYPE_AUDIO }
+            .flatMap { group ->
+                (0 until group.length)
+                    .mapNotNull { index ->
+                        group.getTrackFormat(index).language
+                    }
+            }.distinct()
+    }
+
+    fun onAudioLanguageSelected(language: String) {
+        _controllerState.value?.let { controller ->
+            controller.trackSelectionParameters = controller.trackSelectionParameters
+                .buildUpon()
+                .setPreferredAudioLanguage(language)
+                .build()
+        }
+    }
+
 
 }
 

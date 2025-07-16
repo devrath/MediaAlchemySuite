@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
                 val controller by viewModel.controllerState
                 val playerState by viewModel.playerState.collectAsState()
                 val subtitleLanguages by viewModel.subtitleLanguages.collectAsState()
+                val audioLanguages by viewModel.audioLanguages.collectAsState()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainScreen(
@@ -51,8 +52,10 @@ class MainActivity : ComponentActivity() {
                         onCaptionsToggle = { viewModel.onToggleCaptions() },
                         onSpeedSelected = { viewModel.onPlaybackSpeedSelected(it) },
                         onStartNewMedia = { viewModel.startNewMedia() },
+                        onSubtitleSelected = { viewModel.onSubtitleLanguageSelected(it) },
                         availableSubtitles = subtitleLanguages,
-                        onSubtitleSelected = { viewModel.onSubtitleLanguageSelected(it) }
+                        onAudioSelected = { viewModel.onAudioLanguageSelected(it) },
+                        availableAudioLanguages = audioLanguages,
                     )
                 }
             }
@@ -72,7 +75,9 @@ fun MainScreen(
     onSpeedSelected: (Float) -> Unit,
     onStartNewMedia: () -> Unit,
     availableSubtitles: List<String>,
-    onSubtitleSelected: (String) -> Unit
+    onSubtitleSelected: (String) -> Unit,
+    availableAudioLanguages: List<String>,
+    onAudioSelected: (String) -> Unit
 ) {
     when (playerState) {
         PlayerState.PlayerBuffering -> {
@@ -108,7 +113,9 @@ fun MainScreen(
                 onSpeedSelected = onSpeedSelected,
                 fullScreenClick = {},
                 availableSubtitles = availableSubtitles,
-                onSubtitleSelected = onSubtitleSelected
+                onSubtitleSelected = onSubtitleSelected,
+                availableAudioLanguages = availableAudioLanguages,
+                onAudioSelected = onAudioSelected
             )
         }
         is PlayerState.PlayerError -> {
