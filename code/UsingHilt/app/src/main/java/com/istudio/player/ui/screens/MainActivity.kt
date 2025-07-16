@@ -36,26 +36,20 @@ class MainActivity : ComponentActivity() {
         setContent {
             PlayerTheme {
                 val viewModel: MainActivityViewModel = viewModel()
-                val controller by viewModel.controllerState
-                val playerState by viewModel.playerState.collectAsState()
-                val subtitleLanguages by viewModel.subtitleLanguages.collectAsState()
-                val audioLanguages by viewModel.audioLanguages.collectAsState()
+                val uiState by viewModel.uiState.collectAsState()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainScreen(
                         modifier = Modifier.padding(innerPadding),
-                        playerState = playerState,
-                        controller = controller,
-                        onPlayPause = { viewModel.onPlayPauseToggle() },
-                        onSeekBack = { viewModel.onSeekBack() },
-                        onSeekForward = { viewModel.onSeekForward() },
-                        onCaptionsToggle = { viewModel.onToggleCaptions() },
-                        onSpeedSelected = { viewModel.onPlaybackSpeedSelected(it) },
-                        onStartNewMedia = { viewModel.startNewMedia() },
-                        onSubtitleSelected = { viewModel.onSubtitleLanguageSelected(it) },
-                        availableSubtitles = subtitleLanguages,
-                        onAudioSelected = { viewModel.onAudioLanguageSelected(it) },
-                        availableAudioLanguages = audioLanguages,
+                        uiState = uiState,
+                        onPlayPause = viewModel::onPlayPauseToggle,
+                        onSeekBack = viewModel::onSeekBack,
+                        onSeekForward = viewModel::onSeekForward,
+                        onCaptionsToggle = viewModel::onToggleCaptions,
+                        onSpeedSelected = viewModel::onPlaybackSpeedSelected,
+                        onStartNewMedia = viewModel::startNewMedia,
+                        onSubtitleSelected = viewModel::onSubtitleLanguageSelected,
+                        onAudioSelected = viewModel::onAudioLanguageSelected
                     )
                 }
             }
@@ -66,20 +60,17 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    playerState: PlayerState,
-    controller: MediaController?,
+    uiState: PlayerUiState,
     onPlayPause: () -> Unit,
     onSeekBack: () -> Unit,
     onSeekForward: () -> Unit,
     onCaptionsToggle: () -> Unit,
     onSpeedSelected: (Float) -> Unit,
     onStartNewMedia: () -> Unit,
-    availableSubtitles: List<String>,
     onSubtitleSelected: (String) -> Unit,
-    availableAudioLanguages: List<String>,
     onAudioSelected: (String) -> Unit
 ) {
-    when (playerState) {
+    when (val playerState = uiState.playerState) {
         PlayerState.PlayerBuffering -> {
             Box(
                 modifier = modifier
@@ -90,21 +81,24 @@ fun MainScreen(
                 PlayerLoading()
             }
         }
+
         PlayerState.PlayerEnded -> {
             PlayerEnded(modifier) {
                 onStartNewMedia()
             }
         }
+
         PlayerState.PlayerIdle -> {
             PlayerIdle(modifier) {
                 onStartNewMedia()
             }
         }
+
         PlayerState.PlayerReady,
         PlayerState.PlayerPlaying,
         PlayerState.PlayerPaused -> {
             MainScreenComposable(
-                controller = controller,
+                controller = uiState.controller,
                 modifier = modifier,
                 onPlayPause = onPlayPause,
                 onSeekBack = onSeekBack,
@@ -112,18 +106,20 @@ fun MainScreen(
                 onCaptionsToggle = onCaptionsToggle,
                 onSpeedSelected = onSpeedSelected,
                 fullScreenClick = {},
-                availableSubtitles = availableSubtitles,
+                availableSubtitles = uiState.subtitleLanguages,
                 onSubtitleSelected = onSubtitleSelected,
-                availableAudioLanguages = availableAudioLanguages,
+                availableAudioLanguages = uiState.audioLanguages,
                 onAudioSelected = onAudioSelected
             )
         }
+
         is PlayerState.PlayerError -> {
             val errorMessage = playerState.exception.message ?: "Unknown error"
             PlayerError(modifier, errorMessage) {
                 onStartNewMedia()
             }
         }
+
         is PlayerState.PlayerSuppressed -> {
             val reason = playerState.reason
             PlayerSuppressed(modifier, reason) {

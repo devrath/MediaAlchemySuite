@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.flow.update
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
@@ -41,21 +42,8 @@ class MainActivityViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    private var isServiceRunning = false
-
-    private val _controllerState = mutableStateOf<MediaController?>(null)
-    val controllerState: State<MediaController?> = _controllerState
-
-    private val _playerState: MutableStateFlow<PlayerState> = MutableStateFlow(PlayerState.PlayerIdle)
-    val playerState: StateFlow<PlayerState> = _playerState.asStateFlow()
-
-    private val _subtitleLanguages = MutableStateFlow<List<String>>(emptyList())
-    val subtitleLanguages: StateFlow<List<String>> = _subtitleLanguages.asStateFlow()
-
-    private val _audioLanguages = MutableStateFlow<List<String>>(emptyList())
-    val audioLanguages: StateFlow<List<String>> = _audioLanguages.asStateFlow()
-
-    private var captionsEnabled = false
+    private val _uiState = MutableStateFlow(PlayerUiState())
+    val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
     init {
         initializePlayer()
@@ -68,34 +56,34 @@ class MainActivityViewModel @Inject constructor(
     }
 
     fun onPlayPauseToggle() {
-        _controllerState.value?.let { controller ->
-            if (controller.isPlaying) controller.pause() else controller.play()
+        _uiState.value.controller?.let {
+            if (it.isPlaying) it.pause() else it.play()
         }
     }
 
     fun onSeekBack() {
-        _controllerState.value?.seekBack()
+        _uiState.value.controller?.seekBack()
     }
 
     fun onSeekForward() {
-        _controllerState.value?.seekForward()
+        _uiState.value.controller?.seekForward()
     }
 
     fun onToggleCaptions() {
-        _controllerState.value?.let { controller ->
-            // Toggle the captions availability on/off
-            captionsEnabled = !captionsEnabled
-            val language = "en"
+        _uiState.value.controller?.let { controller ->
+            val newValue = !_uiState.value.captionsEnabled
+            _uiState.update { it.copy(captionsEnabled = newValue) }
+
             controller.trackSelectionParameters = controller.trackSelectionParameters
                 .buildUpon()
-                .setPreferredTextLanguage(language)
-                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !captionsEnabled)
+                .setPreferredTextLanguage("en")
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !newValue)
                 .build()
         }
     }
 
     fun onPlaybackSpeedSelected(speed: Float) {
-        _controllerState.value?.setPlaybackSpeed(speed)
+        _uiState.value.controller?.setPlaybackSpeed(speed)
     }
 
     @OptIn(UnstableApi::class)
@@ -103,14 +91,16 @@ class MainActivityViewModel @Inject constructor(
         val controller = sessionController.initialize()
         controller.addListener(
             PlayerStateListener(controller) { state ->
-                _playerState.value = state
-                if (state is PlayerState.PlayerReady) {
-                    _subtitleLanguages.value = listAvailableSubtitleLanguages()
-                    _audioLanguages.value = listAvailableAudioLanguages()
+                _uiState.update {
+                    it.copy(
+                        playerState = state,
+                        subtitleLanguages = if (state is PlayerState.PlayerReady) listAvailableSubtitleLanguages() else it.subtitleLanguages,
+                        audioLanguages = if (state is PlayerState.PlayerReady) listAvailableAudioLanguages() else it.audioLanguages
+                    )
                 }
             }
         )
-        _controllerState.value = controller
+        _uiState.update { it.copy(controller = controller) }
         startNewMedia()
     }
 
@@ -121,11 +111,11 @@ class MainActivityViewModel @Inject constructor(
     private fun stopVideo() = sessionController.release()
 
     private fun startMediaService() {
-        if (!isServiceRunning) {
+        if (!_uiState.value.isServiceRunning) {
             try {
                 val intent = Intent(context, PlayerMediaSessionService::class.java)
                 ContextCompat.startForegroundService(context, intent)
-                isServiceRunning = true
+                _uiState.update { it.copy(isServiceRunning = true) }
                 Log.d(APP_TAG, "Media service started successfully")
             } catch (e: Exception) {
                 Log.e(APP_TAG, "Media service failed to start", e)
@@ -144,24 +134,27 @@ class MainActivityViewModel @Inject constructor(
             val mimeType = when {
                 videoUrl.endsWith(".m3u8", ignoreCase = true) -> MimeTypes.APPLICATION_M3U8
                 videoUrl.endsWith(".mp4", ignoreCase = true) -> MimeTypes.VIDEO_MP4
-                else -> MimeTypes.VIDEO_UNKNOWN // fallback
+                else -> MimeTypes.VIDEO_UNKNOWN
             }
 
-            val mediaItem = MediaItem.Builder().setUri(videoUrl).setMimeType(mimeType)
+            val mediaItem = MediaItem.Builder()
+                .setUri(videoUrl)
+                .setMimeType(mimeType)
                 .setMediaMetadata(
                     MediaMetadata.Builder()
                         .setTitle(title)
                         .setArtworkUri(artworkUrl.toUri())
-                        .setArtist(artist).build()
+                        .setArtist(artist)
+                        .build()
                 )
                 .build()
 
-            controllerState.value?.apply {
+            _uiState.value.controller?.apply {
                 setMediaItem(mediaItem)
                 prepare()
                 play()
             }
-        }catch (ex: Exception){
+        } catch (ex: Exception) {
             ex.printStackTrace()
         }
     }
@@ -169,11 +162,8 @@ class MainActivityViewModel @Inject constructor(
     private fun initializePlayer() {
         viewModelScope.launch {
             try {
-                // Step 1: Start service
-                //startMediaService()
-                // Step 2: Initialise media controller
+                // Optional: startMediaService()
                 initializeController()
-                // Step 3: Play video
                 playVideo()
                 Log.d(APP_TAG, "Playback started successfully")
             } catch (e: Exception) {
@@ -183,8 +173,8 @@ class MainActivityViewModel @Inject constructor(
     }
 
     fun onSubtitleLanguageSelected(language: String) {
-        _controllerState.value?.let { controller ->
-            captionsEnabled = true
+        _uiState.update { it.copy(captionsEnabled = true) }
+        _uiState.value.controller?.let { controller ->
             controller.trackSelectionParameters = controller.trackSelectionParameters
                 .buildUpon()
                 .setPreferredTextLanguage(language)
@@ -195,39 +185,36 @@ class MainActivityViewModel @Inject constructor(
 
     @OptIn(UnstableApi::class)
     fun listAvailableSubtitleLanguages(): List<String> {
-        val controller = _controllerState.value ?: return emptyList()
+        val controller = _uiState.value.controller ?: return emptyList()
         return controller.currentTracks.groups
             .filter { it.type == C.TRACK_TYPE_TEXT }
             .flatMap { group ->
                 (0 until group.length)
-                    .mapNotNull { index ->
-                        group.getTrackFormat(index).language
-                    }
-            }.distinct()
+                    .mapNotNull { index -> group.getTrackFormat(index).language }
+            }
+            .distinct()
     }
 
     @OptIn(UnstableApi::class)
     fun listAvailableAudioLanguages(): List<String> {
-        val controller = _controllerState.value ?: return emptyList()
+        val controller = _uiState.value.controller ?: return emptyList()
         return controller.currentTracks.groups
             .filter { it.type == C.TRACK_TYPE_AUDIO }
             .flatMap { group ->
                 (0 until group.length)
-                    .mapNotNull { index ->
-                        group.getTrackFormat(index).language
-                    }
-            }.distinct()
+                    .mapNotNull { index -> group.getTrackFormat(index).language }
+            }
+            .distinct()
     }
 
     fun onAudioLanguageSelected(language: String) {
-        _controllerState.value?.let { controller ->
+        _uiState.value.controller?.let { controller ->
             controller.trackSelectionParameters = controller.trackSelectionParameters
                 .buildUpon()
                 .setPreferredAudioLanguage(language)
                 .build()
         }
     }
-
 
 }
 
@@ -241,3 +228,12 @@ sealed class PlayerState {
     data class PlayerError(val exception: PlaybackException) : PlayerState()
     data class PlayerSuppressed(val reason: Int) : PlayerState()
 }
+
+data class PlayerUiState(
+    val controller: MediaController? = null,
+    val playerState: PlayerState = PlayerState.PlayerIdle,
+    val subtitleLanguages: List<String> = emptyList(),
+    val audioLanguages: List<String> = emptyList(),
+    val isServiceRunning: Boolean = false,
+    val captionsEnabled: Boolean = false
+)
