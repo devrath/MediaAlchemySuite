@@ -51,7 +51,9 @@ class MainActivity : ComponentActivity() {
                         onAudioSelected = viewModel::onAudioLanguageSelected,
                         onShowSpeedDialog = viewModel::showSpeedDialog,
                         onShowSubtitleDialog = viewModel::showSubtitleDialog,
-                        onShowAudioDialog = viewModel::showAudioDialog
+                        onShowAudioDialog = viewModel::showAudioDialog,
+                        onResolutionSelected = viewModel::onResolutionSelected,
+                        onShowResolutionDialog = viewModel::showResolutionDialog
                     )
                 }
             }
@@ -73,7 +75,9 @@ fun MainScreen(
     onAudioSelected: (String) -> Unit,
     onShowSpeedDialog: (Boolean) -> Unit,
     onShowSubtitleDialog: (Boolean) -> Unit,
-    onShowAudioDialog: (Boolean) -> Unit
+    onShowAudioDialog: (Boolean) -> Unit,
+    onResolutionSelected: (Int) -> Unit,
+    onShowResolutionDialog: (Boolean) -> Unit
 ) {
     when (val playerState = uiState.playerState) {
         PlayerState.PlayerBuffering -> {
@@ -118,9 +122,13 @@ fun MainScreen(
                 showSpeedDialog = uiState.showSpeedDialog,
                 showSubtitleDialog = uiState.showSubtitleDialog,
                 showAudioDialog = uiState.showAudioDialog,
+                showResolutionDialog = uiState.showResolutionDialog,
+                availableResolutions = uiState.availableResolutions,
+                onResolutionSelected = onResolutionSelected,
                 onShowSpeedDialog = onShowSpeedDialog,
                 onShowSubtitleDialog = onShowSubtitleDialog,
-                onShowAudioDialog = onShowAudioDialog
+                onShowAudioDialog = onShowAudioDialog,
+                onShowResolutionDialog = onShowResolutionDialog
             )
         }
 

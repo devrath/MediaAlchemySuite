@@ -87,6 +87,10 @@ class MainActivityViewModel @Inject constructor(
         _uiState.value.controller?.seekForward()
     }
 
+    fun showResolutionDialog(show: Boolean) {
+        _uiState.update { it.copy(showResolutionDialog = show) }
+    }
+
     fun onToggleCaptions() {
         _uiState.value.controller?.let { controller ->
             val newValue = !_uiState.value.captionsEnabled
@@ -114,6 +118,7 @@ class MainActivityViewModel @Inject constructor(
                         playerState = state,
                         subtitleLanguages = if (state is PlayerState.PlayerReady) listAvailableSubtitleLanguages() else it.subtitleLanguages,
                         audioLanguages = if (state is PlayerState.PlayerReady) listAvailableAudioLanguages() else it.audioLanguages,
+                        availableResolutions = if (state is PlayerState.PlayerReady) listAvailableResolutions() else it.availableResolutions,
                         isPlaying = controller.isPlaying
                     )
                 }
@@ -235,6 +240,28 @@ class MainActivityViewModel @Inject constructor(
         }
     }
 
+    fun onResolutionSelected(height: Int) {
+        _uiState.value.controller?.let { controller ->
+            controller.trackSelectionParameters = controller.trackSelectionParameters
+                .buildUpon()
+                .setMaxVideoSize(Integer.MAX_VALUE, height)
+                .build()
+        }
+    }
+
+    @OptIn(UnstableApi::class)
+    fun listAvailableResolutions(): List<Int> {
+        val controller = _uiState.value.controller ?: return emptyList()
+        return controller.currentTracks.groups
+            .filter { it.type == C.TRACK_TYPE_VIDEO }
+            .flatMap { group ->
+                (0 until group.length)
+                    .mapNotNull { index -> group.getTrackFormat(index).height }
+            }
+            .distinct()
+            .sortedDescending()
+    }
+
 }
 
 sealed class PlayerState {
@@ -253,10 +280,12 @@ data class PlayerUiState(
     val playerState: PlayerState = PlayerState.PlayerIdle,
     val subtitleLanguages: List<String> = emptyList(),
     val audioLanguages: List<String> = emptyList(),
+    val availableResolutions: List<Int> = emptyList(),
     val isServiceRunning: Boolean = false,
     val captionsEnabled: Boolean = false,
     val isPlaying: Boolean = false,
     val showSpeedDialog: Boolean = false,
     val showSubtitleDialog: Boolean = false,
-    val showAudioDialog: Boolean = false
+    val showAudioDialog: Boolean = false,
+    val showResolutionDialog: Boolean = false
 )

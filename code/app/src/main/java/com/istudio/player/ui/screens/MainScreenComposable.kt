@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Queue
 import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Subtitles
@@ -65,9 +66,13 @@ fun MainScreenComposable(
     showSpeedDialog: Boolean,
     showSubtitleDialog: Boolean,
     showAudioDialog: Boolean,
+    showResolutionDialog: Boolean,
+    availableResolutions: List<Int>,
+    onResolutionSelected: (Int) -> Unit,
     onShowSpeedDialog: (Boolean) -> Unit,
     onShowSubtitleDialog: (Boolean) -> Unit,
-    onShowAudioDialog: (Boolean) -> Unit
+    onShowAudioDialog: (Boolean) -> Unit,
+    onShowResolutionDialog: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -93,7 +98,8 @@ fun MainScreenComposable(
                 onCaptionsToggle = onCaptionsToggle,
                 onSpeedClick = { onShowSpeedDialog(true) },
                 onSubtitleClick = { onShowSubtitleDialog(true) },
-                onAudioClick = { onShowAudioDialog(true) }
+                onAudioClick = { onShowAudioDialog(true) },
+                onResolutionClick = { onShowResolutionDialog(true) }
             )
 
             if (showSpeedDialog) {
@@ -132,6 +138,19 @@ fun MainScreenComposable(
                     onDismiss = { onShowAudioDialog(false) }
                 )
             }
+
+            if (showResolutionDialog) {
+                SelectionBottomSheetDialog(
+                    title = "Select Resolution",
+                    options = availableResolutions,
+                    optionToText = { "${it}p" },
+                    onOptionSelected = {
+                        onResolutionSelected(it)
+                        onShowResolutionDialog(false)
+                    },
+                    onDismiss = { onShowResolutionDialog(false) }
+                )
+            }
         }
     }
 }
@@ -146,7 +165,8 @@ fun PlayerControlsRow(
     onCaptionsToggle: () -> Unit,
     onSpeedClick: () -> Unit,
     onSubtitleClick: () -> Unit,
-    onAudioClick: () -> Unit
+    onAudioClick: () -> Unit,
+    onResolutionClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -182,6 +202,10 @@ fun PlayerControlsRow(
 
         IconButton(onClick = onAudioClick) {
             Icon(Icons.Default.Language, contentDescription = "Audio Language")
+        }
+
+        IconButton(onClick = onResolutionClick) {
+            Icon(Icons.Default.Queue, contentDescription = "Video Resolution")
         }
     }
 }
