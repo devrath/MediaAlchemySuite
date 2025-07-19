@@ -138,20 +138,7 @@ class MainActivityViewModel @Inject constructor(
 
     private fun pauseVideo() = playbackController.pause()
 
-    private fun stopVideo() = sessionController.release()
-
-    private fun startMediaService() {
-        if (!_uiState.value.isServiceRunning) {
-            try {
-                val intent = Intent(context, PlayerMediaSessionService::class.java)
-                ContextCompat.startForegroundService(context, intent)
-                _uiState.update { it.copy(isServiceRunning = true) }
-                Log.d(APP_TAG, "Media service started successfully")
-            } catch (e: Exception) {
-                Log.e(APP_TAG, "Media service failed to start", e)
-            }
-        }
-    }
+    private fun stopVideo() = sessionController.release()refactor
 
     @OptIn(UnstableApi::class)
     fun startNewMedia() {
