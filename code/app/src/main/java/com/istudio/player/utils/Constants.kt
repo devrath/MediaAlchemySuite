@@ -8,7 +8,7 @@ object Constants {
     const val NOTIFICATION_ID = 101
     val CHANNEL_NAME = R.string.media_playback_channel_name
 
-
+    const val LIVE_SOURCE = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
 
     // ──────────────────────────────
     // HLS (.m3u8) Sample Streams
