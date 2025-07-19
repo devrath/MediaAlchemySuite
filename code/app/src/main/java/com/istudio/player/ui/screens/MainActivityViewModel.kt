@@ -156,7 +156,6 @@ class MainActivityViewModel @Inject constructor(
     @OptIn(UnstableApi::class)
     fun startNewMedia() {
         try {
-            //val videoUrl = Constants.MULTI_LANG_AUDIO_SUBS
             val source = _uiState.value.selectedSource
             val videoUrl = source.url
             val artworkUrl = Constants.ART_WORK_URL
