@@ -47,6 +47,7 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import com.istudio.player.R
 import com.istudio.player.ui.screens.composables.SelectionBottomSheetDialog
+import com.istudio.player.ui.screens.composables.SourceButton
 import com.istudio.player.utils.VideoSourceType
 
 
@@ -64,6 +65,7 @@ fun MainScreenComposable(
     availableAudioLanguages: List<String>,
     onAudioSelected: (String) -> Unit,
     isPlaying: Boolean,
+    isLive: Boolean,
     showSpeedDialog: Boolean,
     showSubtitleDialog: Boolean,
     showAudioDialog: Boolean,
@@ -109,7 +111,8 @@ fun MainScreenComposable(
 
             SourceSelectionRow(
                 selectedSource = selectedSource,
-                onSourceSelected = onSourceSelected
+                onSourceSelected = onSourceSelected,
+                isLive = isLive
             )
 
             if (showSpeedDialog) {
@@ -222,6 +225,7 @@ fun PlayerControlsRow(
 
 @Composable
 fun SourceSelectionRow(
+    isLive: Boolean,
     selectedSource: VideoSourceType,
     onSourceSelected: (VideoSourceType) -> Unit
 ) {
@@ -246,25 +250,11 @@ fun SourceSelectionRow(
 
         SourceButton(
             label = VideoSourceType.LIVE.label,
+            isLive = isLive,
             isSelected = selectedSource is VideoSourceType.LIVE,
             onClick = { onSourceSelected(VideoSourceType.LIVE) }
         )
     }
-}
-
-@Composable
-fun SourceButton(
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Text(
-        text = label,
-        modifier = Modifier
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        color = if (isSelected) androidx.compose.ui.graphics.Color.Red else androidx.compose.ui.graphics.Color.Gray
-    )
 }
 
 

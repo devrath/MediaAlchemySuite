@@ -56,7 +56,8 @@ class MainActivity : ComponentActivity() {
                         onResolutionSelected = viewModel::onResolutionSelected,
                         onShowResolutionDialog = viewModel::showResolutionDialog,
                         selectedSource = uiState.selectedSource,
-                        onSourceSelected = viewModel::onSourceSelected
+                        onSourceSelected = viewModel::onSourceSelected,
+                        isLive = uiState.isLiveStream
                     )
                 }
             }
@@ -69,6 +70,7 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     uiState: PlayerUiState,
     selectedSource: VideoSourceType,
+    isLive: Boolean,
     onPlayPause: () -> Unit,
     onSeekBack: () -> Unit,
     onSeekForward: () -> Unit,
@@ -124,6 +126,7 @@ fun MainScreen(
                 availableAudioLanguages = uiState.audioLanguages,
                 onAudioSelected = onAudioSelected,
                 isPlaying = uiState.isPlaying,
+                isLive = uiState.isLiveStream,
                 showSpeedDialog = uiState.showSpeedDialog,
                 showSubtitleDialog = uiState.showSubtitleDialog,
                 showAudioDialog = uiState.showAudioDialog,

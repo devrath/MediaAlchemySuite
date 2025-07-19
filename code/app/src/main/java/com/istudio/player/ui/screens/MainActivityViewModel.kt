@@ -119,13 +119,15 @@ class MainActivityViewModel @Inject constructor(
         val controller = sessionController.initialize()
         controller.addListener(
             PlayerStateListener(controller) { state ->
+                val isLive = controller.isCurrentMediaItemLive && controller.isCurrentMediaItemDynamic
                 _uiState.update {
                     it.copy(
                         playerState = state,
                         subtitleLanguages = if (state is PlayerState.PlayerReady) listAvailableSubtitleLanguages() else it.subtitleLanguages,
                         audioLanguages = if (state is PlayerState.PlayerReady) listAvailableAudioLanguages() else it.audioLanguages,
                         availableResolutions = if (state is PlayerState.PlayerReady) listAvailableResolutions() else it.availableResolutions,
-                        isPlaying = controller.isPlaying
+                        isPlaying = controller.isPlaying,
+                        isLiveStream = isLive
                     )
                 }
             }
@@ -282,5 +284,6 @@ data class PlayerUiState(
     val showSubtitleDialog: Boolean = false,
     val showAudioDialog: Boolean = false,
     val showResolutionDialog: Boolean = false,
-    val selectedSource: VideoSourceType = VideoSourceType.HLS
+    val selectedSource: VideoSourceType = VideoSourceType.HLS,
+    val isLiveStream: Boolean = false
 )
