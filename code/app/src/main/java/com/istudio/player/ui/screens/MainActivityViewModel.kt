@@ -138,7 +138,8 @@ class MainActivityViewModel @Inject constructor(
 
     private fun pauseVideo() = playbackController.pause()
 
-    private fun stopVideo() = sessionController.release()refactor
+    private fun stopVideo() = sessionController.release()
+
 
     @OptIn(UnstableApi::class)
     fun startNewMedia() {
