@@ -284,6 +284,6 @@ data class PlayerUiState(
     val showSubtitleDialog: Boolean = false,
     val showAudioDialog: Boolean = false,
     val showResolutionDialog: Boolean = false,
-    val selectedSource: VideoSourceType = VideoSourceType.HLS,
+    val selectedSource: VideoSourceType = VideoSourceType.LIVE,
     val isLiveStream: Boolean = false
 )
