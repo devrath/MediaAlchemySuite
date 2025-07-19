@@ -47,6 +47,7 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import com.istudio.player.R
 import com.istudio.player.ui.screens.composables.SelectionBottomSheetDialog
+import com.istudio.player.utils.VideoSourceType
 
 
 @Composable
@@ -67,12 +68,14 @@ fun MainScreenComposable(
     showSubtitleDialog: Boolean,
     showAudioDialog: Boolean,
     showResolutionDialog: Boolean,
+    selectedSource: VideoSourceType,
     availableResolutions: List<Int>,
     onResolutionSelected: (Int) -> Unit,
     onShowSpeedDialog: (Boolean) -> Unit,
     onShowSubtitleDialog: (Boolean) -> Unit,
     onShowAudioDialog: (Boolean) -> Unit,
     onShowResolutionDialog: (Boolean) -> Unit,
+    onSourceSelected: (VideoSourceType) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -100,6 +103,13 @@ fun MainScreenComposable(
                 onSubtitleClick = { onShowSubtitleDialog(true) },
                 onAudioClick = { onShowAudioDialog(true) },
                 onResolutionClick = { onShowResolutionDialog(true) }
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            SourceSelectionRow(
+                selectedSource = selectedSource,
+                onSourceSelected = onSourceSelected
             )
 
             if (showSpeedDialog) {
@@ -209,6 +219,54 @@ fun PlayerControlsRow(
         }
     }
 }
+
+@Composable
+fun SourceSelectionRow(
+    selectedSource: VideoSourceType,
+    onSourceSelected: (VideoSourceType) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        SourceButton(
+            label = VideoSourceType.MP4.label,
+            isSelected = selectedSource is VideoSourceType.MP4,
+            onClick = { onSourceSelected(VideoSourceType.MP4) }
+        )
+
+        SourceButton(
+            label = VideoSourceType.HLS.label,
+            isSelected = selectedSource is VideoSourceType.HLS,
+            onClick = { onSourceSelected(VideoSourceType.HLS) }
+        )
+
+        SourceButton(
+            label = VideoSourceType.LIVE.label,
+            isSelected = selectedSource is VideoSourceType.LIVE,
+            onClick = { onSourceSelected(VideoSourceType.LIVE) }
+        )
+    }
+}
+
+@Composable
+fun SourceButton(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Text(
+        text = label,
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        color = if (isSelected) androidx.compose.ui.graphics.Color.Red else androidx.compose.ui.graphics.Color.Gray
+    )
+}
+
 
 @OptIn(UnstableApi::class)
 private fun preparePlayerView(

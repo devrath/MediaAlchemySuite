@@ -23,6 +23,7 @@ import com.istudio.player.ui.screens.composables.PlayerIdle
 import com.istudio.player.ui.screens.composables.PlayerSuppressed
 import com.istudio.player.ui.screens.composables.PlayerError
 import com.istudio.player.ui.theme.PlayerTheme
+import com.istudio.player.utils.VideoSourceType
 import dagger.hilt.android.AndroidEntryPoint
 
 val CONTAINER_HEIGHT = 500.dp
@@ -53,7 +54,9 @@ class MainActivity : ComponentActivity() {
                         onShowSubtitleDialog = viewModel::showSubtitleDialog,
                         onShowAudioDialog = viewModel::showAudioDialog,
                         onResolutionSelected = viewModel::onResolutionSelected,
-                        onShowResolutionDialog = viewModel::showResolutionDialog
+                        onShowResolutionDialog = viewModel::showResolutionDialog,
+                        selectedSource = uiState.selectedSource,
+                        onSourceSelected = viewModel::onSourceSelected
                     )
                 }
             }
@@ -65,6 +68,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(
     modifier: Modifier = Modifier,
     uiState: PlayerUiState,
+    selectedSource: VideoSourceType,
     onPlayPause: () -> Unit,
     onSeekBack: () -> Unit,
     onSeekForward: () -> Unit,
@@ -77,7 +81,8 @@ fun MainScreen(
     onShowSubtitleDialog: (Boolean) -> Unit,
     onShowAudioDialog: (Boolean) -> Unit,
     onResolutionSelected: (Int) -> Unit,
-    onShowResolutionDialog: (Boolean) -> Unit
+    onShowResolutionDialog: (Boolean) -> Unit,
+    onSourceSelected: (VideoSourceType) -> Unit
 ) {
     when (val playerState = uiState.playerState) {
         PlayerState.PlayerBuffering -> {
@@ -128,7 +133,9 @@ fun MainScreen(
                 onShowSpeedDialog = onShowSpeedDialog,
                 onShowSubtitleDialog = onShowSubtitleDialog,
                 onShowAudioDialog = onShowAudioDialog,
-                onShowResolutionDialog = onShowResolutionDialog
+                onShowResolutionDialog = onShowResolutionDialog,
+                selectedSource = selectedSource,
+                onSourceSelected = onSourceSelected
             )
         }
 

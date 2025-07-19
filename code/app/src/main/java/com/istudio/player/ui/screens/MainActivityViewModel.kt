@@ -26,6 +26,7 @@ import com.istudio.player.controllers.VideoMediaController
 import com.istudio.player.controllers.VideoPlaybackController
 import com.istudio.player.service.PlayerMediaSessionService
 import com.istudio.player.utils.Constants
+import com.istudio.player.utils.VideoSourceType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,6 +92,11 @@ class MainActivityViewModel @Inject constructor(
         _uiState.update { it.copy(showResolutionDialog = show) }
     }
 
+    fun onSourceSelected(source: VideoSourceType) {
+        _uiState.update { it.copy(selectedSource = source) }
+        startNewMedia() // reload with new source
+    }
+
     fun onToggleCaptions() {
         _uiState.value.controller?.let { controller ->
             val newValue = !_uiState.value.captionsEnabled
@@ -150,10 +156,12 @@ class MainActivityViewModel @Inject constructor(
     @OptIn(UnstableApi::class)
     fun startNewMedia() {
         try {
-            val videoUrl = Constants.MULTI_LANG_AUDIO_SUBS
+            //val videoUrl = Constants.MULTI_LANG_AUDIO_SUBS
+            val source = _uiState.value.selectedSource
+            val videoUrl = source.url
             val artworkUrl = Constants.ART_WORK_URL
-            val title = "Title-1"
-            val artist = "Artist-1"
+            val title = source.label.plus(" Title")
+            val artist = source.label.plus(" Artist")
 
             val mimeType = when {
                 videoUrl.endsWith(".m3u8", ignoreCase = true) -> MimeTypes.APPLICATION_M3U8
@@ -287,5 +295,6 @@ data class PlayerUiState(
     val showSpeedDialog: Boolean = false,
     val showSubtitleDialog: Boolean = false,
     val showAudioDialog: Boolean = false,
-    val showResolutionDialog: Boolean = false
+    val showResolutionDialog: Boolean = false,
+    val selectedSource: VideoSourceType = VideoSourceType.HLS
 )
