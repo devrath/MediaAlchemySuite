@@ -193,7 +193,6 @@ class MainActivityViewModel @Inject constructor(
     private fun initializePlayer() {
         viewModelScope.launch {
             try {
-                // Optional: startMediaService()
                 initializeController()
                 playVideo()
                 Log.d(APP_TAG, "Playback started successfully")
