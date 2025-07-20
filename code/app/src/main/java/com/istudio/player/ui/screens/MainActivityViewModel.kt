@@ -193,6 +193,9 @@ class MainActivityViewModel @Inject constructor(
                 prepare()
                 play()
             }
+            if(uiState.value.isLiveStream){
+                _uiState.value.controller?.seekToDefaultPosition()
+            }
         } catch (ex: Exception) {
             ex.printStackTrace()
         }
