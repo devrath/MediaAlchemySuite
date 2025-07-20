@@ -1,10 +1,10 @@
 package com.istudio.player.di
 
-import com.istudio.player.controllers.VideoControllerImpl
-import com.istudio.player.controllers.VideoPlaybackController
-import com.istudio.player.controllers.VideoMediaController
-import com.istudio.player.notification.NotificationProviderContract
-import com.istudio.player.notification.NotificationProviderContractImpl
+import com.istudio.player.player_blocks.controllers.VideoControllerImpl
+import com.istudio.player.player_blocks.controllers.VideoPlaybackController
+import com.istudio.player.player_blocks.controllers.VideoMediaController
+import com.istudio.player.player_blocks.notification.NotificationProviderContract
+import com.istudio.player.player_blocks.notification.NotificationProviderContractImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

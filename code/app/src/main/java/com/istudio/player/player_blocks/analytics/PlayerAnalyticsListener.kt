@@ -1,4 +1,4 @@
-package com.istudio.player.analytics
+package com.istudio.player.player_blocks.analytics
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.Player

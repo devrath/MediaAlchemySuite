@@ -1,4 +1,4 @@
-package com.istudio.player.notification
+package com.istudio.player.player_blocks.notification
 
 import android.content.Context
 import android.os.Bundle
@@ -10,7 +10,7 @@ import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaNotification
 import androidx.media3.session.SessionCommand
 import com.istudio.player.R
-import com.istudio.player.callbacks.PlayerMediaSessionCallback
+import com.istudio.player.player_blocks.callbacks.PlayerMediaSessionCallback
 import com.istudio.player.utils.Constants.CHANNEL_NAME
 import com.istudio.player.utils.Constants.NOTIFICATION_ID
 import com.istudio.player.utils.Constants.PLAYBACK_CHANNEL_ID

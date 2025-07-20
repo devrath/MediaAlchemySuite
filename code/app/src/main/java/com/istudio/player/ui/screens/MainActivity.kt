@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.istudio.player.ui.screens.composables.NoConnectivityError
 import com.istudio.player.ui.screens.composables.PlayerLoading
 import com.istudio.player.ui.screens.composables.PlayerEnded
 import com.istudio.player.ui.screens.composables.PlayerIdle
@@ -55,6 +56,7 @@ class MainActivity : ComponentActivity() {
                         onShowAudioDialog = viewModel::showAudioDialog,
                         onResolutionSelected = viewModel::onResolutionSelected,
                         onShowResolutionDialog = viewModel::showResolutionDialog,
+                        noConnectivityRetry = viewModel::noConnectivityRetry,
                         selectedSource = uiState.selectedSource,
                         onSourceSelected = viewModel::onSourceSelected,
                         isLive = uiState.isLiveStream
@@ -77,6 +79,7 @@ fun MainScreen(
     onCaptionsToggle: () -> Unit,
     onSpeedSelected: (Float) -> Unit,
     onStartNewMedia: () -> Unit,
+    noConnectivityRetry: () -> Unit,
     onSubtitleSelected: (String) -> Unit,
     onAudioSelected: (String) -> Unit,
     onShowSpeedDialog: (Boolean) -> Unit,
@@ -87,6 +90,27 @@ fun MainScreen(
     onSourceSelected: (VideoSourceType) -> Unit
 ) {
     when (val playerState = uiState.playerState) {
+
+        is PlayerState.PlayerError -> {
+            val errorMessage = playerState.exception.message ?: "Unknown error"
+            PlayerError(modifier, errorMessage) {
+                onStartNewMedia()
+            }
+        }
+
+        is PlayerState.PlayerSuppressed -> {
+            val reason = playerState.reason
+            PlayerSuppressed(modifier, reason) {
+                onStartNewMedia()
+            }
+        }
+
+        is PlayerState.NoConnectivity -> {
+            NoConnectivityError{
+                noConnectivityRetry()
+            }
+        }
+
         PlayerState.PlayerBuffering -> {
             Box(
                 modifier = modifier
@@ -140,20 +164,6 @@ fun MainScreen(
                 selectedSource = selectedSource,
                 onSourceSelected = onSourceSelected
             )
-        }
-
-        is PlayerState.PlayerError -> {
-            val errorMessage = playerState.exception.message ?: "Unknown error"
-            PlayerError(modifier, errorMessage) {
-                onStartNewMedia()
-            }
-        }
-
-        is PlayerState.PlayerSuppressed -> {
-            val reason = playerState.reason
-            PlayerSuppressed(modifier, reason) {
-                onStartNewMedia()
-            }
         }
     }
 }

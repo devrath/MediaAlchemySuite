@@ -1,4 +1,4 @@
-package com.istudio.player.service
+package com.istudio.player.player_blocks.service
 
 import android.content.Intent
 import androidx.annotation.OptIn
@@ -11,10 +11,10 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import com.istudio.player.analytics.PlayerAnalyticsListener
-import com.istudio.player.analytics.createPlaybackStatsListener
+import com.istudio.player.player_blocks.analytics.PlayerAnalyticsListener
+import com.istudio.player.player_blocks.analytics.createPlaybackStatsListener
 import com.istudio.player.di.qualifiers.MainActivityClass
-import com.istudio.player.notification.NotificationProviderContract
+import com.istudio.player.player_blocks.notification.NotificationProviderContract
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

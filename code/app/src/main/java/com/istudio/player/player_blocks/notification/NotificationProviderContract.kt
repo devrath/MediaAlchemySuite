@@ -1,4 +1,4 @@
-package com.istudio.player.notification
+package com.istudio.player.player_blocks.notification
 
 import android.content.Context
 import androidx.annotation.OptIn

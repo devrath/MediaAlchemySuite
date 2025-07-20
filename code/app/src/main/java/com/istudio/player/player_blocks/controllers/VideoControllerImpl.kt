@@ -1,4 +1,4 @@
-package com.istudio.player.controllers
+package com.istudio.player.player_blocks.controllers
 
 import android.content.ComponentName
 import android.content.Context
@@ -6,7 +6,7 @@ import android.util.Log
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.istudio.player.application.APP_TAG
-import com.istudio.player.service.PlayerMediaSessionService
+import com.istudio.player.player_blocks.service.PlayerMediaSessionService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.guava.await
 import javax.inject.Inject

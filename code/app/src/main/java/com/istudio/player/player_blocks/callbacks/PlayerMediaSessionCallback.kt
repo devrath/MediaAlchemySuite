@@ -1,4 +1,4 @@
-package com.istudio.player.callbacks
+package com.istudio.player.player_blocks.callbacks
 
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession

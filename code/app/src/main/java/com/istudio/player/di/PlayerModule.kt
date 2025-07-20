@@ -4,12 +4,18 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.session.MediaSession
-import com.istudio.player.callbacks.PlayerMediaSessionCallback
+import com.istudio.player.player_blocks.callbacks.PlayerMediaSessionCallback
 import com.istudio.player.di.qualifiers.MainActivityClass
+import com.istudio.player.player_blocks.callbacks.PlaybackErrorHandler
+import com.istudio.player.player_blocks.policies.CustomLoadErrorHandlingPolicy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,13 +29,41 @@ object PlayerModule {
 
     @Provides
     @Singleton
+    fun providePlaybackErrorHandler(): PlaybackErrorHandler = PlaybackErrorHandler()
+
+    @Provides
+    @Singleton
+    @UnstableApi
+    fun provideLoadErrorPolicy(
+        errorHandler: PlaybackErrorHandler
+    ): LoadErrorHandlingPolicy {
+        // Your custom retry policy for segment errors (e.g., 404)
+        return CustomLoadErrorHandlingPolicy(errorHandler)
+    }
+
+    @Provides
+    @Singleton
+    @UnstableApi
+    fun provideMediaSourceFactory(
+        @ApplicationContext context: Context,
+        loadErrorPolicy: LoadErrorHandlingPolicy
+    ): DefaultMediaSourceFactory {
+        // Set the policy on the MediaSourceFactory
+        return DefaultMediaSourceFactory(context)
+            .setLoadErrorHandlingPolicy(loadErrorPolicy)
+    }
+
+    @Provides
+    @Singleton
     @UnstableApi
     fun provideExoPlayer(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        mediaSourceFactory: DefaultMediaSourceFactory
     ): ExoPlayer {
         return ExoPlayer.Builder(context)
             .setHandleAudioBecomingNoisy(true)
             .setTrackSelector(DefaultTrackSelector(context))
+            .setMediaSourceFactory(mediaSourceFactory)
             .build()
     }
 

@@ -1,4 +1,4 @@
-package com.istudio.player.callbacks
+package com.istudio.player.player_blocks.callbacks
 
 import android.util.Log
 import androidx.media3.common.PlaybackException
@@ -15,7 +15,7 @@ class PlayerStateListener(
 
     override fun onPlaybackStateChanged(playbackState: Int) {
         when (playbackState) {
-            Player.STATE_BUFFERING, Player.STATE_IDLE -> onPlayerStateChanged(PlayerState.PlayerBuffering)
+            Player.STATE_BUFFERING -> onPlayerStateChanged(PlayerState.PlayerBuffering)
             Player.STATE_READY -> onPlayerStateChanged(PlayerState.PlayerReady)
             Player.STATE_ENDED -> onPlayerStateChanged(PlayerState.PlayerEnded)
         }

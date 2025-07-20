@@ -1,4 +1,4 @@
-package com.istudio.player.controllers
+package com.istudio.player.player_blocks.controllers
 
 import androidx.media3.session.MediaController
 

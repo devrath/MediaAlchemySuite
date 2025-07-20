@@ -1,12 +1,8 @@
 package com.istudio.player.ui.screens
 
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import androidx.annotation.OptIn
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,20 +11,18 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.HttpDataSource
-import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.session.MediaController
 import com.istudio.player.application.APP_TAG
-import com.istudio.player.callbacks.PlayerStateListener
-import com.istudio.player.controllers.VideoMediaController
-import com.istudio.player.controllers.VideoPlaybackController
-import com.istudio.player.service.PlayerMediaSessionService
+import com.istudio.player.player_blocks.callbacks.PlaybackErrorHandler
+import com.istudio.player.player_blocks.callbacks.PlayerStateListener
+import com.istudio.player.player_blocks.controllers.VideoMediaController
+import com.istudio.player.player_blocks.controllers.VideoPlaybackController
 import com.istudio.player.utils.Constants
 import com.istudio.player.utils.VideoSourceType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,6 +34,7 @@ import kotlinx.coroutines.flow.update
 class MainActivityViewModel @Inject constructor(
     private val sessionController: VideoMediaController,
     private val playbackController: VideoPlaybackController,
+    private val errorHandler: PlaybackErrorHandler,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -47,6 +42,14 @@ class MainActivityViewModel @Inject constructor(
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
     init {
+        errorHandler.apply {
+            onMaxRetryReached = {
+                fallbackToNextSource()
+            }
+            noConnectivity = {
+                noConnectivityEnvironment()
+            }
+        }
         initializePlayer()
     }
 
@@ -97,6 +100,10 @@ class MainActivityViewModel @Inject constructor(
         startNewMedia() // reload with new source
     }
 
+    fun noConnectivityRetry() {
+        startNewMedia()
+    }
+
     fun onToggleCaptions() {
         _uiState.value.controller?.let { controller ->
             val newValue = !_uiState.value.captionsEnabled
@@ -127,7 +134,6 @@ class MainActivityViewModel @Inject constructor(
                         audioLanguages = if (state is PlayerState.PlayerReady) listAvailableAudioLanguages() else it.audioLanguages,
                         availableResolutions = if (state is PlayerState.PlayerReady) listAvailableResolutions() else it.availableResolutions,
                         isPlaying = controller.isPlaying,
-                        isLiveStream = isLive
                     )
                 }
             }
@@ -144,7 +150,7 @@ class MainActivityViewModel @Inject constructor(
 
 
     @OptIn(UnstableApi::class)
-    fun startNewMedia() {
+    fun startNewMedia() = viewModelScope.launch{
         try {
             val source = _uiState.value.selectedSource
             val videoUrl = source.url
@@ -170,6 +176,8 @@ class MainActivityViewModel @Inject constructor(
                 )
                 .build()
 
+            delay(200) // Optional small buffer
+
             _uiState.value.controller?.apply {
                 setMediaItem(mediaItem)
                 prepare()
@@ -189,6 +197,21 @@ class MainActivityViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e(APP_TAG, "Error while starting playback", e)
             }
+        }
+    }
+
+    private fun fallbackToNextSource() {
+        Log.e(APP_TAG, "Max retries reached. Switching to fallback stream.")
+        // Switch to fallback source
+        _uiState.update { it.copy(selectedSource = VideoSourceType.MP4) }
+        startNewMedia()
+    }
+
+    private fun noConnectivityEnvironment() {
+        _uiState.update {
+            it.copy(
+                playerState = PlayerState.NoConnectivity,
+            )
         }
     }
 
@@ -267,6 +290,7 @@ sealed class PlayerState {
     data object PlayerIdle: PlayerState()
     data object PlayerPlaying: PlayerState()
     data object PlayerPaused: PlayerState()
+    data object NoConnectivity: PlayerState()
     data class PlayerError(val exception: PlaybackException) : PlayerState()
     data class PlayerSuppressed(val reason: Int) : PlayerState()
 }
@@ -280,10 +304,10 @@ data class PlayerUiState(
     val isServiceRunning: Boolean = false,
     val captionsEnabled: Boolean = false,
     val isPlaying: Boolean = false,
+    val isLiveStream: Boolean = false,
     val showSpeedDialog: Boolean = false,
     val showSubtitleDialog: Boolean = false,
     val showAudioDialog: Boolean = false,
     val showResolutionDialog: Boolean = false,
-    val selectedSource: VideoSourceType = VideoSourceType.LIVE,
-    val isLiveStream: Boolean = false
+    val selectedSource: VideoSourceType = VideoSourceType.LIVE
 )
