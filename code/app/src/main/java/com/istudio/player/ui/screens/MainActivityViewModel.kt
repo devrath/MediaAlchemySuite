@@ -136,6 +136,7 @@ class MainActivityViewModel @Inject constructor(
                         audioLanguages = if (state is PlayerState.PlayerReady) listAvailableAudioLanguages() else it.audioLanguages,
                         availableResolutions = if (state is PlayerState.PlayerReady) listAvailableResolutions() else it.availableResolutions,
                         isPlaying = controller.isPlaying,
+                        isLiveStream = isLive
                     )
                 }
             }

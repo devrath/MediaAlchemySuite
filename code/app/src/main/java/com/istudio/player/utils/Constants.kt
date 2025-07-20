@@ -8,8 +8,8 @@ object Constants {
     const val NOTIFICATION_ID = 101
     val CHANNEL_NAME = R.string.media_playback_channel_name
 
-    //const val LIVE_SOURCE = "https://video-dev.economist.com/media/all/public/vod-live/master.m3u8?url=https%3A%2F%2Fdemo.unified-streaming.com%2Fk8s%2Ffeatures%2Fstable%2Fvideo%2Ftears-of-steel%2Ftears-of-steel.ism%2F.m3u8"
-    const val LIVE_SOURCE = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+    const val LIVE_SOURCE = "https://video-dev.economist.com/media/all/public/vod-live/master.m3u8?url=https%3A%2F%2Fdemo.unified-streaming.com%2Fk8s%2Ffeatures%2Fstable%2Fvideo%2Ftears-of-steel%2Ftears-of-steel.ism%2F.m3u8"
+    //const val LIVE_SOURCE = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
     //const val LIVE_SOURCE = "https://nasa-i.akamaihd.net/hls/live/253566/NASA-NTV2-Media/master.m3u8" // -> Another error
     //const val LIVE_SOURCE = "https://www.nasa.gov/multimedia/nasatv/NTV-Public-IPS.m3u8" // --> Returns 404
 
