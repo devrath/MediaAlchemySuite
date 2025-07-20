@@ -18,6 +18,7 @@ import com.istudio.player.player_blocks.callbacks.PlaybackErrorHandler
 import com.istudio.player.player_blocks.callbacks.PlayerStateListener
 import com.istudio.player.player_blocks.controllers.VideoMediaController
 import com.istudio.player.player_blocks.controllers.VideoPlaybackController
+import com.istudio.player.player_blocks.network.NetworkMonitor
 import com.istudio.player.utils.Constants
 import com.istudio.player.utils.VideoSourceType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,6 +36,7 @@ class MainActivityViewModel @Inject constructor(
     private val sessionController: VideoMediaController,
     private val playbackController: VideoPlaybackController,
     private val errorHandler: PlaybackErrorHandler,
+    private val networkMonitor: NetworkMonitor,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -152,6 +154,13 @@ class MainActivityViewModel @Inject constructor(
     @OptIn(UnstableApi::class)
     fun startNewMedia() = viewModelScope.launch{
         try {
+
+            if (!networkMonitor.isConnected()) {
+                Log.e(APP_TAG, "No internet connection at playback start.")
+                noConnectivityEnvironment()
+                return@launch
+            }
+
             val source = _uiState.value.selectedSource
             val videoUrl = source.url
             val artworkUrl = Constants.ART_WORK_URL
