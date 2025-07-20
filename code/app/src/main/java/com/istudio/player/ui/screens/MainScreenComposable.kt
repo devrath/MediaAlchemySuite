@@ -60,9 +60,7 @@ fun MainScreenComposable(
     onSeekForward: () -> Unit,
     onCaptionsToggle: () -> Unit,
     onSpeedSelected: (Float) -> Unit,
-    availableSubtitles: List<String>,
     onSubtitleSelected: (String) -> Unit,
-    availableAudioLanguages: List<String>,
     onAudioSelected: (String) -> Unit,
     isPlaying: Boolean,
     isLive: Boolean,
@@ -71,7 +69,9 @@ fun MainScreenComposable(
     showAudioDialog: Boolean,
     showResolutionDialog: Boolean,
     selectedSource: VideoSourceType,
+    availableSubtitles: List<String>,
     availableResolutions: List<Int>,
+    availableAudioLanguages: List<String>,
     onResolutionSelected: (Int) -> Unit,
     onShowSpeedDialog: (Boolean) -> Unit,
     onShowSubtitleDialog: (Boolean) -> Unit,
@@ -101,6 +101,9 @@ fun MainScreenComposable(
                 onSeekBack = onSeekBack,
                 onSeekForward = onSeekForward,
                 onCaptionsToggle = onCaptionsToggle,
+                areSubTitlesAvailable = availableSubtitles.isNotEmpty(),
+                areResolutionsAvailable = availableResolutions.isNotEmpty(),
+                areAudioLanguagesAvailable = availableAudioLanguages.isNotEmpty(),
                 onSpeedClick = { onShowSpeedDialog(true) },
                 onSubtitleClick = { onShowSubtitleDialog(true) },
                 onAudioClick = { onShowAudioDialog(true) },
@@ -172,6 +175,9 @@ fun MainScreenComposable(
 @Composable
 fun PlayerControlsRow(
     isPlaying: Boolean,
+    areSubTitlesAvailable: Boolean,
+    areResolutionsAvailable: Boolean,
+    areAudioLanguagesAvailable: Boolean,
     onPlayPause: () -> Unit,
     onSeekBack: () -> Unit,
     onSeekForward: () -> Unit,
@@ -209,16 +215,22 @@ fun PlayerControlsRow(
             Icon(Icons.Default.ClosedCaption, contentDescription = "Toggle Captions")
         }
 
-        IconButton(onClick = onSubtitleClick) {
-            Icon(Icons.Default.Subtitles, contentDescription = "Subtitle Language")
+        if(areSubTitlesAvailable){
+            IconButton(onClick = onSubtitleClick) {
+                Icon(Icons.Default.Subtitles, contentDescription = "Subtitle Language")
+            }
         }
 
-        IconButton(onClick = onAudioClick) {
-            Icon(Icons.Default.Language, contentDescription = "Audio Language")
+        if(areAudioLanguagesAvailable){
+            IconButton(onClick = onAudioClick) {
+                Icon(Icons.Default.Language, contentDescription = "Audio Language")
+            }
         }
 
-        IconButton(onClick = onResolutionClick) {
-            Icon(Icons.Default.Queue, contentDescription = "Video Resolution")
+        if (areResolutionsAvailable) {
+            IconButton(onClick = onResolutionClick) {
+                Icon(Icons.Default.Queue, contentDescription = "Video Resolution")
+            }
         }
     }
 }
